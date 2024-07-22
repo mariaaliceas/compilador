@@ -63,8 +63,6 @@ int countn = 0;
 int yylex();
 int yyparse();
 
-%}
-
 %union {
     YYSTYPE val;
     int token;  // Token gerado pelo lexer
@@ -81,4 +79,4 @@ int yyparse();
 %left '*' '/'
 %left INCR
 
-%%
+%}
