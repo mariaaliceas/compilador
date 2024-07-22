@@ -62,21 +62,14 @@ int countn = 0;
 int yylex();
 int yyparse();
 
-// Definição de YYSTYPE como tipo de valor associado aos tokens
+// Indicação de que YYSTYPE está definido
 #define YYSTYPE_IS_DECLARED
-%}
 
-%union {
-    YYSTYPE val;  // Tipo para os valores associados aos tokens
-    int token;    // Token gerado pelo lexer
-}
+// Definição de tokens
+%token <str_val> STR
+%token <int_val> CHARACTER
 
-%token <val.int_val> INT
-%token <val.float_val> FLOAT
-%token <val.str_val> STR
-%token <val.int_val> CHARACTER
-
-%token PRINTFF SCANFF CHAR DOUBLE VOID RETURN FOR IF ELSE INCLUDE TRUE FALSE WHILE CONTINUE BREAK
+%token PRINTFF SCANFF INT FLOAT CHAR DOUBLE VOID RETURN FOR IF ELSE INCLUDE TRUE FALSE WHILE CONTINUE BREAK
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE SEMI DOT COMMA ASSIGN REFER LESS LESSEQUAL EQUAL
 %token GREATEREQUAL GREATER ADDOP MULOP DIVOP INCR OROP ANDOP NOTOP EQUOP
 
