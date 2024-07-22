@@ -1,66 +1,54 @@
 %{
+#include <stdio.h>
 #include "y.tab.h"
-int countn=0;
+extern int countn;  // Declare countn from lexer.l
 %}
 
-%option yylineno
+%option yylineno  // Include line number information
 
-alpha [a-zA-Z]
-digit [0-9]
-unary "++"|"--"
+// No need to redefine tokens here, they are defined in lexer.l
 
 %%
-"mostrar"                       { return PRINTFF; }
-"receber"                       { return SCANFF; }
-"declarar inteiro"              { return INT; }
-"declarar flutuante"            { return FLOAT; }
-"declarar caractere"            { return CHAR; }
-"declarar double"               { return DOUBLE; }
-"retorno vazio"                 { return VOID; }
-"devolver"                      { return RETURN; }
-"para cada"                     { return FOR; }
-"se"                            { return IF; }
-"entao"                         { return ELSE; }
-"incluir biblioteca"[ ]*<.+\.h  { return INCLUDE; }
-"verdadeiro"                    { return TRUE; }
-"falso"                         { return FALSE; }
-"enquanto"                      { return WHILE; }
-"continuar"                     { return CONTINUE; }
-"parar"                         { return BREAK; }
-"abre parenteses"               { return LPAREN; }
-"fecha parenteses"              { return RPAREN; }
-"abre colchetes"                { return LBRACK; }
-"fecha colchetes"               { return RBRACK; }
-"abre chaves"                   { return LBRACE; }
-"fecha chaves"                  { return RBRACE; }
-"ponto e virgula"               { return SEMI; }
-"ponto"                         { return DOT; }
-"virgula"                       { return COMMA; }
-"atribuicao"                    { return ASSIGN; }
-"referencia"                    { return REFER; }
-"menor que"                     { return LESS; }
-"menor ou igual que"            { return LESSEQUAL; }
-"igual"                         { return EQUAL; }
-"maior ou igual que"            { return GREATEREQUAL; }
-"maior que"                     { return GREATER; }
-"+"|"-"                         { return ADDOP; }
-"*"                             { return MULOP; }
-"/"                             { return DIVOP; }
-"++"|"--"                       { return INCR; }
-"||"                            { return OROP; }
-"&&"                            { return ANDOP; }
-"!"                             { return NOTOP; }
-"=="|"!="                       { return EQUOP; }
-\/\/.*                          { ; }
-\/\*(.*\n)*.*\*\/               { ; } 
-[ \t]*                          { ; }
-[\n]                            { countn++; }
-.	                        { return *yytext; }
-["].*["]                        { return STR; }
-['].[']                         { return CHARACTER; }
+
+program : /* empty */
+        | program statement '\n'
+        ;
+
+statement :  // Define grammar rules for valid statements
+            declaration
+         | expression_statement
+         | selection_statement
+         | iteration_statement
+         | jump_statement
+         ;
+
+declaration :  declarar_inteiro identifier (';' | ASSIGN expression) 
+              | declarar_flutuante identifier (';' | ASSIGN expression) 
+              | ... // Add other data type declarations based on keywords
+
+assignment : ASSIGN expression 
+
+expression_statement : expression SEMI
+
+selection_statement : IF '(' expression ')' statement (ELSE statement)?
+
+iteration_statement : FOR '(' /* loop condition */ ')' statement 
+                      | WHILE '(' expression ')' statement
+
+jump_statement : RETURN expression? SEMI
+               | BREAK SEMI
+               | CONTINUE SEMI
+
+/* Add more grammar rules for expressions and other statements as needed */ 
 
 %%
 
 int yywrap() {
-    return 1;
+  return 1;
+}
+
+int main() {
+  yyparse();
+  printf("Número de linhas: %d\n", countn);
+  return 0;
 }
