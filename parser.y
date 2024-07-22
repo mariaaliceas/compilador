@@ -1,6 +1,6 @@
 %{
 #include <stdio.h>
-#include "lex.yy.c"  // Inclui o arquivo gerado pelo Flex
+#include "lex.yy.c"
 
 // Definição dos tokens
 #define PRINTFF     1
