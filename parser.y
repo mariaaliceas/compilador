@@ -77,6 +77,8 @@ int yyparse();
 %left '*' '/'
 %left INCR
 
+%}
+
 %%
 
 program : /* empty */
