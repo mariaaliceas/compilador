@@ -1,8 +1,13 @@
-%
-{
+%{
 #include "y.tab.h"
-    %
-}
+int countn=0;
+%}
+
+%option yylineno
+
+alpha [a-zA-Z]
+digit [0-9]
+unary "++"|"--"
 
 %%
 "mostrar"                       { return PRINTFF; }
@@ -17,8 +22,8 @@
 "se"                            { return IF; }
 "entao"                         { return ELSE; }
 "incluir biblioteca"[ ]*<.+\.h  { return INCLUDE; }
-"verdade"                       { return TRUE; }
-"falsidade"                     { return FALSE; }
+"verdadeiro"                    { return TRUE; }
+"falso"                         { return FALSE; }
 "enquanto"                      { return WHILE; }
 "continuar"                     { return CONTINUE; }
 "parar"                         { return BREAK; }
@@ -46,6 +51,16 @@
 "&&"                            { return ANDOP; }
 "!"                             { return NOTOP; }
 "=="|"!="                       { return EQUOP; }
+\/\/.*                          { ; }
+\/\*(.*\n)*.*\*\/               { ; } 
+[ \t]*                          { ; }
+[\n]                            { countn++; }
+.	                            { return *yytext; }
+["].*["]                        { return STR; }
+['].[']                         { return CHARACTER; }
 
 %%
 
+int yywrap() {
+    return 1;
+}
