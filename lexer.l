@@ -55,7 +55,7 @@ unary "++"|"--"
 \/\*(.*\n)*.*\*\/               { ; } 
 [ \t]*                          { ; }
 [\n]                            { countn++; }
-.	                          { return *yytext; }
+.	                        { return *yytext; }
 ["].*["]                        { return STR; }
 ['].[']                         { return CHARACTER; }
 
