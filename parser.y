@@ -1,8 +1,6 @@
 %{
 #include <stdio.h>
 #include "lex.yy.c"  // Inclui o arquivo gerado pelo Flex
-extern int yylineno;
-extern char* yytext;
 
 // Definição dos tokens
 #define PRINTFF  1
@@ -49,12 +47,30 @@ extern char* yytext;
 #define STR     42
 #define CHARACTER 43
 
+// Definição do tipo YYSTYPE
+typedef union {
+    char *str_val;
+    int int_val;
+    float float_val;
+    // Adicione outros tipos conforme necessário
+} YYSTYPE;
+
+// Variável global para contar o número de linhas
 extern int countn;
 int countn = 0;
 
+// Protótipo da função gerada pelo yacc
+int yylex();
+int yyparse();
+
 %}
 
-%token <yytext> STR CHARACTER
+%union {
+    YYSTYPE val;
+    int token;  // Token gerado pelo lexer
+}
+
+%token <val> STR CHARACTER
 
 %token PRINTFF SCANFF INT FLOAT CHAR DOUBLE VOID RETURN FOR IF ELSE INCLUDE
 %token TRUE FALSE WHILE CONTINUE BREAK LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE SEMI
