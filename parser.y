@@ -3,55 +3,55 @@
 #include "lex.yy.c"
 
 // Definição dos tokens
-#define PRINTFF     1
-#define SCANFF      2
-#define INT         3
-#define FLOAT       4
-#define CHAR        5
-#define DOUBLE      6
-#define VOID        7
-#define RETURN      8
-#define FOR         9
-#define IF          10
-#define ELSE        11
-#define INCLUDE     12
-#define TRUE        13
-#define FALSE       14
-#define WHILE       15
-#define CONTINUE    16
-#define BREAK       17
-#define LPAREN      18
-#define RPAREN      19
-#define LBRACK      20
-#define RBRACK      21
-#define LBRACE      22
-#define RBRACE      23
-#define SEMI        24
-#define DOT         25
-#define COMMA       26
-#define ASSIGN      27
-#define REFER       28
-#define LESS        29
-#define LESSEQUAL   30
-#define EQUAL       31
+#define PRINTFF    1
+#define SCANFF     2
+#define INT        3
+#define FLOAT      4
+#define CHAR       5
+#define DOUBLE     6
+#define VOID       7
+#define RETURN     8
+#define FOR        9
+#define IF         10
+#define ELSE       11
+#define INCLUDE    12
+#define TRUE       13
+#define FALSE      14
+#define WHILE      15
+#define CONTINUE   16
+#define BREAK      17
+#define LPAREN     18
+#define RPAREN     19
+#define LBRACK     20
+#define RBRACK     21
+#define LBRACE     22
+#define RBRACE     23
+#define SEMI       24
+#define DOT        25
+#define COMMA      26
+#define ASSIGN     27
+#define REFER      28
+#define LESS       29
+#define LESSEQUAL  30
+#define EQUAL      31
 #define GREATEREQUAL 32
-#define GREATER     33
-#define ADDOP       34
-#define MULOP       35
-#define DIVOP       36
-#define INCR        37
-#define OROP        38
-#define ANDOP       39
-#define NOTOP       40
-#define EQUOP       41
-#define STR         42
-#define CHARACTER   43
+#define GREATER    33
+#define ADDOP      34
+#define MULOP      35
+#define DIVOP      36
+#define INCR       37
+#define OROP       38
+#define ANDOP      39
+#define NOTOP      40
+#define EQUOP      41
+#define STR        42
+#define CHARACTER  43
 
 // Definição do tipo YYSTYPE
 typedef union {
-    char *str_val;
-    int int_val;
-    float float_val;
+   char *str_val;
+   int int_val;
+   float float_val;
 } YYSTYPE;
 
 // Variável global para contar o número de linhas
@@ -81,63 +81,45 @@ int yyparse();
 
 %%
 
-program : /* empty */
-        | program statement '\n'
-        ;
+program : /* empty */  // No semicolon needed here
+         | program statement '\n'
+         ;
 
-statement : PRINTFF
-          | SCANFF
-          | INT
-          | FLOAT
-          | CHAR
-          | DOUBLE
-          | VOID
-          | RETURN
-          | FOR
-          | IF
-          | ELSE
-          | INCLUDE
-          | TRUE
-          | FALSE
-          | WHILE
-          | CONTINUE
-          | BREAK
-          | LPAREN
-          | RPAREN
-          | LBRACK
-          | RBRACK
-          | LBRACE
-          | RBRACE
-          | SEMI
-          | DOT
-          | COMMA
-          | ASSIGN
-          | REFER
-          | LESS
-          | LESSEQUAL
-          | EQUAL
-          | GREATEREQUAL
-          | GREATER
-          | ADDOP
-          | MULOP
-          | DIVOP
-          | INCR
-          | OROP
-          | ANDOP
-          | NOTOP
-          | EQUOP
-          | STR
-          | CHARACTER
-          ;
+statement :  // Define grammar rules for valid statements
+            declaration
+         | expression_statement
+         | selection_statement
+         | iteration_statement
+         | jump_statement
+         ;
+
+declaration : INT identifier (';' | assignment) 
+             | FLOAT identifier (';' | assignment) 
+             | ... // Add other data type declarations
+
+assignment : ASSIGN expression 
+
+expression_statement : expression SEMI
+
+selection_statement : IF '(' expression ')' statement (ELSE statement)?
+
+iteration_statement : FOR '(' /* loop condition */ ')' statement 
+                      | WHILE '(' expression ')' statement
+
+jump_statement : RETURN expression? SEMI
+               | BREAK SEMI
+               | CONTINUE SEMI
+
+/* Add more grammar rules for expressions and other statements as needed */ 
 
 %%
 
 int yywrap() {
-    return 1;
+   return 1;
 }
 
 int main() {
-    yyparse();
-    printf("Número de linhas: %d\n", countn);
-    return 0;
+   yyparse();
+   printf("Número de linhas: %d\n", countn);
+   return 0;
 }
