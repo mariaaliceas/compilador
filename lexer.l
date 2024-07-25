@@ -1,45 +1,33 @@
 %{
 #include <stdio.h>
 #include "y.tab.h"
-extern int countn;  // Declare countn from lexer.l
+extern int countn;
 %}
 
-%option yylineno  // Include line number information
-
-// No need to redefine tokens here, they are defined in lexer.l
+%option yylineno
 
 %%
 
-program : /* empty */
-        | program statement '\n'
-        ;
-
-statement :  // Define grammar rules for valid statements
-            declaration
-         | expression_statement
-         | selection_statement
-         | iteration_statement
-         | jump_statement
-         ;
-
-declaration :  declarar_inteiro identifier (';' | ASSIGN expression) 
-              | declarar_flutuante identifier (';' | ASSIGN expression) 
-              | ... // Add other data type declarations based on keywords
-
-assignment : ASSIGN expression 
-
-expression_statement : expression SEMI
-
-selection_statement : IF '(' expression ')' statement (ELSE statement)?
-
-iteration_statement : FOR '(' /* loop condition */ ')' statement 
-                      | WHILE '(' expression ')' statement
-
-jump_statement : RETURN expression? SEMI
-               | BREAK SEMI
-               | CONTINUE SEMI
-
-/* Add more grammar rules for expressions and other statements as needed */ 
+"program"              { return PROGRAM; }
+"declarar_inteiro"     { return DECLARAR_INTEIRO; }
+"declarar_flutuante"   { return DECLARAR_FLUTUANTE; }
+"if"                   { return IF; }
+"else"                 { return ELSE; }
+"for"                  { return FOR; }
+"while"                { return WHILE; }
+"return"               { return RETURN; }
+"break"                { return BREAK; }
+"continue"             { return CONTINUE; }
+";"                    { return SEMI; }
+"="                    { return ASSIGN; }
+"("                    { return '('; }
+")"                    { return ')'; }
+[a-zA-Z_][a-zA-Z0-9_]* { yylval.str = strdup(yytext); return IDENTIFIER; }
+[0-9]+                 { yylval.num = atoi(yytext); return INTEGER; }
+[0-9]+\.[0-9]+         { yylval.fnum = atof(yytext); return FLOAT; }
+\n                     { countn++; }
+[ \t\r\f\v]+           { /* Ignorar espaços em branco */ }
+.                      { /* Ignorar outros caracteres */ }
 
 %%
 
