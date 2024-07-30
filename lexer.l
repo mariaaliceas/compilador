@@ -7,28 +7,54 @@ extern int countn;
 %option yylineno
 
 %%
-
-"program"              { return PROGRAM; }
-"declarar_inteiro"     { return DECLARAR_INTEIRO; }
-"declarar_flutuante"   { return DECLARAR_FLUTUANTE; }
-"if"                   { return IF; }
-"else"                 { return ELSE; }
-"for"                  { return FOR; }
-"while"                { return WHILE; }
-"return"               { return RETURN; }
-"break"                { return BREAK; }
-"continue"             { return CONTINUE; }
-";"                    { return SEMI; }
-"="                    { return ASSIGN; }
-"("                    { return '('; }
-")"                    { return ')'; }
-[a-zA-Z_][a-zA-Z0-9_]* { yylval.str = strdup(yytext); return IDENTIFIER; }
-[0-9]+                 { yylval.num = atoi(yytext); return INTEGER; }
-[0-9]+\.[0-9]+         { yylval.fnum = atof(yytext); return FLOAT; }
-\n                     { countn++; }
-[ \t\r\f\v]+           { /* Ignorar espaços em branco */ }
-.                      { /* Ignorar outros caracteres */ }
-
+"mostrar"                       { return PRINTFF; }
+"receber"                       { return SCANFF; }
+"declarar inteiro"              { return INT; }
+"declarar flutuante"            { return FLOAT; }
+"declarar caractere"            { return CHAR; }
+"declarar double"               { return DOUBLE; }
+"retorno vazio"                 { return VOID; }
+"devolver"                      { return RETURN; }
+"para cada"                     { return FOR; }
+"se"                            { return IF; }
+"entao"                         { return ELSE; }
+"incluir biblioteca"[ ]*<.+\.h  { return INCLUDE; }
+"verdadeiro"                    { return TRUE; }
+"falso"                         { return FALSE; }
+"enquanto"                      { return WHILE; }
+"continuar"                     { return CONTINUE; }
+"parar"                         { return BREAK; }
+"abre parenteses"               { return LPAREN; }
+"fecha parenteses"              { return RPAREN; }
+"abre colchetes"                { return LBRACK; }
+"fecha colchetes"               { return RBRACK; }
+"abre chaves"                   { return LBRACE; }
+"fecha chaves"                  { return RBRACE; }
+"ponto e virgula"               { return SEMI; }
+"ponto"                         { return DOT; }
+"virgula"                       { return COMMA; }
+"atribuicao"                    { return ASSIGN; }
+"referencia"                    { return REFER; }
+"menor que"                     { return LESS; }
+"menor ou igual que"            { return LESSEQUAL; }
+"igual"                         { return EQUAL; }
+"maior ou igual que"            { return GREATEREQUAL; }
+"maior que"                     { return GREATER; }
+"+"|"-"                         { return ADDOP; }
+"*"                             { return MULOP; }
+"/"                             { return DIVOP; }
+"++"|"--"                       { return INCR; }
+"||"                            { return OROP; }
+"&&"                            { return ANDOP; }
+"!"                             { return NOTOP; }
+"=="|"!="                       { return EQUOP; }
+\/\/.*                          { ; }
+\/\*(.*\n)*.*\*\/               { ; } 
+[ \t]*                          { ; }
+[\n]                            { countn++; }
+.	                              { return *yytext; }
+["].*["]                        { return STR; }
+['].[']                         { return CHARACTER; }
 %%
 
 int yywrap() {
