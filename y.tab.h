@@ -54,51 +54,37 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    PRINTFF = 258,                 /* PRINTFF  */
-    SCANFF = 259,                  /* SCANFF  */
-    INT = 260,                     /* INT  */
-    FLOAT = 261,                   /* FLOAT  */
-    CHAR = 262,                    /* CHAR  */
-    DOUBLE = 263,                  /* DOUBLE  */
-    VOID = 264,                    /* VOID  */
-    RETURN = 265,                  /* RETURN  */
-    FOR = 266,                     /* FOR  */
-    IF = 267,                      /* IF  */
-    ELSE = 268,                    /* ELSE  */
-    INCLUDE = 269,                 /* INCLUDE  */
-    TRUE = 270,                    /* TRUE  */
-    FALSE = 271,                   /* FALSE  */
-    WHILE = 272,                   /* WHILE  */
-    CONTINUE = 273,                /* CONTINUE  */
-    BREAK = 274,                   /* BREAK  */
-    LPAREN = 275,                  /* LPAREN  */
-    RPAREN = 276,                  /* RPAREN  */
-    LBRACK = 277,                  /* LBRACK  */
-    RBRACK = 278,                  /* RBRACK  */
-    LBRACE = 279,                  /* LBRACE  */
-    RBRACE = 280,                  /* RBRACE  */
-    SEMI = 281,                    /* SEMI  */
-    DOT = 282,                     /* DOT  */
-    COMMA = 283,                   /* COMMA  */
-    ASSIGN = 284,                  /* ASSIGN  */
-    REFER = 285,                   /* REFER  */
-    LESS = 286,                    /* LESS  */
-    LESSEQUAL = 287,               /* LESSEQUAL  */
-    EQUAL = 288,                   /* EQUAL  */
-    GREATEREQUAL = 289,            /* GREATEREQUAL  */
-    GREATER = 290,                 /* GREATER  */
-    ADDOP = 291,                   /* ADDOP  */
-    MULOP = 292,                   /* MULOP  */
-    DIVOP = 293,                   /* DIVOP  */
-    INCR = 294,                    /* INCR  */
-    OROP = 295,                    /* OROP  */
-    ANDOP = 296,                   /* ANDOP  */
-    NOTOP = 297,                   /* NOTOP  */
-    EQUOP = 298,                   /* EQUOP  */
-    STR = 299,                     /* STR  */
-    CHARACTER = 300,               /* CHARACTER  */
-    IDENTIFIER = 301,              /* IDENTIFIER  */
-    EXPRESSION = 302               /* EXPRESSION  */
+    VOID = 258,                    /* VOID  */
+    CHARACTER = 259,               /* CHARACTER  */
+    PRINTFF = 260,                 /* PRINTFF  */
+    SCANFF = 261,                  /* SCANFF  */
+    INT = 262,                     /* INT  */
+    FLOAT = 263,                   /* FLOAT  */
+    CHAR = 264,                    /* CHAR  */
+    FOR = 265,                     /* FOR  */
+    IF = 266,                      /* IF  */
+    ELSE = 267,                    /* ELSE  */
+    TRUE = 268,                    /* TRUE  */
+    FALSE = 269,                   /* FALSE  */
+    NUMBER = 270,                  /* NUMBER  */
+    FLOAT_NUM = 271,               /* FLOAT_NUM  */
+    ID = 272,                      /* ID  */
+    LE = 273,                      /* LE  */
+    GE = 274,                      /* GE  */
+    EQ = 275,                      /* EQ  */
+    NE = 276,                      /* NE  */
+    GT = 277,                      /* GT  */
+    LT = 278,                      /* LT  */
+    AND = 279,                     /* AND  */
+    OR = 280,                      /* OR  */
+    STR = 281,                     /* STR  */
+    ADD = 282,                     /* ADD  */
+    MULTIPLY = 283,                /* MULTIPLY  */
+    DIVIDE = 284,                  /* DIVIDE  */
+    SUBTRACT = 285,                /* SUBTRACT  */
+    UNARY = 286,                   /* UNARY  */
+    INCLUDE = 287,                 /* INCLUDE  */
+    RETURN = 288                   /* RETURN  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -107,55 +93,53 @@ extern int yydebug;
 #define YYEOF 0
 #define YYerror 256
 #define YYUNDEF 257
-#define PRINTFF 258
-#define SCANFF 259
-#define INT 260
-#define FLOAT 261
-#define CHAR 262
-#define DOUBLE 263
-#define VOID 264
-#define RETURN 265
-#define FOR 266
-#define IF 267
-#define ELSE 268
-#define INCLUDE 269
-#define TRUE 270
-#define FALSE 271
-#define WHILE 272
-#define CONTINUE 273
-#define BREAK 274
-#define LPAREN 275
-#define RPAREN 276
-#define LBRACK 277
-#define RBRACK 278
-#define LBRACE 279
-#define RBRACE 280
-#define SEMI 281
-#define DOT 282
-#define COMMA 283
-#define ASSIGN 284
-#define REFER 285
-#define LESS 286
-#define LESSEQUAL 287
-#define EQUAL 288
-#define GREATEREQUAL 289
-#define GREATER 290
-#define ADDOP 291
-#define MULOP 292
-#define DIVOP 293
-#define INCR 294
-#define OROP 295
-#define ANDOP 296
-#define NOTOP 297
-#define EQUOP 298
-#define STR 299
-#define CHARACTER 300
-#define IDENTIFIER 301
-#define EXPRESSION 302
+#define VOID 258
+#define CHARACTER 259
+#define PRINTFF 260
+#define SCANFF 261
+#define INT 262
+#define FLOAT 263
+#define CHAR 264
+#define FOR 265
+#define IF 266
+#define ELSE 267
+#define TRUE 268
+#define FALSE 269
+#define NUMBER 270
+#define FLOAT_NUM 271
+#define ID 272
+#define LE 273
+#define GE 274
+#define EQ 275
+#define NE 276
+#define GT 277
+#define LT 278
+#define AND 279
+#define OR 280
+#define STR 281
+#define ADD 282
+#define MULTIPLY 283
+#define DIVIDE 284
+#define SUBTRACT 285
+#define UNARY 286
+#define INCLUDE 287
+#define RETURN 288
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+union YYSTYPE
+{
+#line 36 "parser.y"
+ 
+	struct var_name { 
+		char name[100]; 
+		struct node* nd;
+	} nd_obj; 
+
+#line 140 "y.tab.h"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif

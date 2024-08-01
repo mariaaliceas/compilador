@@ -1,68 +1,55 @@
 %{
-#include <stdio.h>
-#include "y.tab.h"
-extern int countn;
+    #include "y.tab.h"
+    int countn=0;
 %}
 
 %option yylineno
 
+alpha [a-zA-Z]
+digit [0-9]
+unary "++"|"--"
+
 %%
-"mostrar"                       { return PRINTFF; }
-"receber"                       { return SCANFF; }
-"declarar inteiro"              { return INT; }
-"declarar flutuante"            { return FLOAT; }
-"declarar caractere"            { return CHAR; }
-"declarar double"               { return DOUBLE; }
-"retorno vazio"                 { return VOID; }
-"devolver"                      { return RETURN; }
-"para cada"                     { return FOR; }
-"se"                            { return IF; }
-"entao"                         { return ELSE; }
-"incluir biblioteca"[ ]*<.+\.h  { return INCLUDE; }
-"verdadeiro"                    { return TRUE; }
-"falso"                         { return FALSE; }
-"enquanto"                      { return WHILE; }
-"continuar"                     { return CONTINUE; }
-"parar"                         { return BREAK; }
-"abre parenteses"               { return LPAREN; }
-"fecha parenteses"              { return RPAREN; }
-"abre colchetes"                { return LBRACK; }
-"fecha colchetes"               { return RBRACK; }
-"abre chaves"                   { return LBRACE; }
-"fecha chaves"                  { return RBRACE; }
-"ponto e virgula"               { return SEMI; }
-"ponto"                         { return DOT; }
-"virgula"                       { return COMMA; }
-"atribuicao"                    { return ASSIGN; }
-"referencia"                    { return REFER; }
-"menor que"                     { return LESS; }
-"menor ou igual que"            { return LESSEQUAL; }
-"igual"                         { return EQUAL; }
-"maior ou igual que"            { return GREATEREQUAL; }
-"maior que"                     { return GREATER; }
-"+"|"-"                         { return ADDOP; }
-"*"                             { return MULOP; }
-"/"                             { return DIVOP; }
-"++"|"--"                       { return INCR; }
-"||"                            { return OROP; }
-"&&"                            { return ANDOP; }
-"!"                             { return NOTOP; }
-"=="|"!="                       { return EQUOP; }
-\/\/.*                          { ; }
-\/\*(.*\n)*.*\*\/               { ; } 
-[ \t]*                          { ; }
-[\n]                            { countn++; }
-.	                              { return *yytext; }
-["].*["]                        { return STR; }
-['].[']                         { return CHARACTER; }
+
+"mostrar"                   { strcpy(yylval.nd_obj.name,(yytext)); return PRINTFF; }
+"receber"                   { strcpy(yylval.nd_obj.name,(yytext)); return SCANFF; }
+"declarar_int"              { strcpy(yylval.nd_obj.name,(yytext)); return INT; }
+"declarar_flutuante"        { strcpy(yylval.nd_obj.name,(yytext)); return FLOAT; }
+"declarar_character"        { strcpy(yylval.nd_obj.name,(yytext)); return CHAR; }
+"declarar_vazio"            { strcpy(yylval.nd_obj.name,(yytext)); return VOID; }
+"returnar"                  { strcpy(yylval.nd_obj.name,(yytext)); return RETURN; }
+"para_cada"	                { strcpy(yylval.nd_obj.name,(yytext)); return FOR; }
+"se"	                    { strcpy(yylval.nd_obj.name,(yytext)); return IF; }
+"entao"	                    { strcpy(yylval.nd_obj.name,(yytext)); return ELSE; }
+^"incluir_biblioteca"[ ]*<.+\.h>      { strcpy(yylval.nd_obj.name,(yytext)); return INCLUDE; }
+"verdadeiro"                { strcpy(yylval.nd_obj.name,(yytext)); return TRUE; }
+"falso"                     { strcpy(yylval.nd_obj.name,(yytext)); return FALSE; }
+[-]?{digit}+                { strcpy(yylval.nd_obj.name,(yytext)); return NUMBER; }
+[-]?{digit}+\.{digit}{1,6}  { strcpy(yylval.nd_obj.name,(yytext)); return FLOAT_NUM; }
+{alpha}({alpha}|{digit})*   { strcpy(yylval.nd_obj.name,(yytext)); return ID; }
+{unary}                     { strcpy(yylval.nd_obj.name,(yytext)); return UNARY; }
+"<="                        { strcpy(yylval.nd_obj.name,(yytext)); return LE; }
+">="                        { strcpy(yylval.nd_obj.name,(yytext)); return GE; }
+"=="                        { strcpy(yylval.nd_obj.name,(yytext)); return EQ; }
+"!="                        { strcpy(yylval.nd_obj.name,(yytext)); return NE; }
+">"	                        { strcpy(yylval.nd_obj.name,(yytext)); return GT; }
+"<"	                        { strcpy(yylval.nd_obj.name,(yytext)); return LT; }
+"&&"	                    { strcpy(yylval.nd_obj.name,(yytext)); return AND; }
+"||"	                    { strcpy(yylval.nd_obj.name,(yytext)); return OR; }
+"+"                         { strcpy(yylval.nd_obj.name,(yytext)); return ADD; }
+"-"                         { strcpy(yylval.nd_obj.name,(yytext)); return SUBTRACT; }
+"/"                         { strcpy(yylval.nd_obj.name,(yytext)); return DIVIDE; }
+"*"                         { strcpy(yylval.nd_obj.name,(yytext)); return MULTIPLY; }
+\/\/.*                      { ; }
+\/\*(.*\n)*.*\*\/           { ; } 
+[ \t]*                      { ; }
+[\n]                        { countn++; }
+.	                        { return *yytext; }
+["].*["]                    { strcpy(yylval.nd_obj.name,(yytext)); return STR; }
+['].[']                     { strcpy(yylval.nd_obj.name,(yytext)); return CHARACTER; }
+
 %%
 
 int yywrap() {
-  return 1;
-}
-
-int main() {
-  yyparse();
-  printf("Número de linhas: %d\n", countn);
-  return 0;
+    return 1;
 }
