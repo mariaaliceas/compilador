@@ -1,0 +1,25 @@
+mostrar "Olá, mundo!";
+declarar_int idade = 25;
+declarar_float altura = 1.75;
+
+se idade >= 18 entao
+    mostrar "Você é maior de idade.";
+senão
+    mostrar "Você é menor de idade.";
+
+para_cada i de 1 até 10 faça
+    mostrar i;
+fim_para
+
+funcao somar(a, b) {
+    declarar_int resultado;
+    resultado = a + b;
+    retornar resultado;
+}
+
+principal() {
+    declarar_int x, y;
+    x = 10;
+    y = 5;
+    mostrar somar(x, y);
+}
