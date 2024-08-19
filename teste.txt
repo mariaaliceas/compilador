@@ -1,25 +1,26 @@
-mostrar "Olá, mundo!";
-declarar_int idade = 25;
-declarar_float altura = 1.75;
-
-se idade >= 18 entao
-    mostrar "Você é maior de idade.";
-senão
-    mostrar "Você é menor de idade.";
-
-para_cada i de 1 até 10 faça
-    mostrar i;
-fim_para
+declarar_int x;
+declarar_int y;
+x recebe 10;
+y recebe 5;
+mostrar somar(x, y);
 
 funcao somar(a, b) {
     declarar_int resultado;
-    resultado = a + b;
+    resultado recebe a + b;
     retornar resultado;
 }
 
-principal() {
-    declarar_int x, y;
-    x = 10;
-    y = 5;
-    mostrar somar(x, y);
+funcao teste(){
+    mostrar "Olá, mundo!";
+    declarar_int idade recebe 25;
+    declarar_float altura recebe 1.75;
+
+    se idade >= 18 entao
+        mostrar "Você é maior de idade.";
+    senao
+        mostrar "Você é menor de idade.";
+
+    para_cada i de 1 até 10 faça
+        mostrar i;
+    fim_para
 }
