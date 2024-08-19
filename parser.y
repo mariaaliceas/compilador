@@ -1,145 +1,310 @@
 %{
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 
-extern int yylex();
+// Estrutura do nó da árvore sintática
+struct node { 
+    struct node *left; 
+    struct node *right; 
+    char *token; 
+};
+
+// Estrutura da tabela de símbolos
+struct dataType {
+    char *id_name;
+    char *data_type;
+    char *type;  // Tipo do símbolo (variável, função, etc.)
+    int line_no;
+} symbolTable[40];
+
+int count = 0;
+char currentType[10]; // Corrigido: usando currentType em vez de type
+extern int countn;
+extern char *yytext;
+struct node *head;
+
 void yyerror(const char *s);
+int yylex();
+struct node* mknode(struct node *left, struct node *right, char *token);
+void printtree(struct node *tree);
+void printInorder(struct node *tree);
+void insertSymbol(char *id, char *type, char *symbolType); // Função para inserir na tabela de símbolos
+
 %}
 
-%union {
-    int intval;
-    float floatval;
-    char *name;
+%union { 
+	struct var_name { 
+		char name[100]; 
+		struct node* nd;
+	} nd_obj; 
 }
 
-%token <intval> NUMBER
-%token <floatval> FLOAT_NUM
-%token <name> ID STR CHARACTER
+// Tokens
+%token <nd_obj> CHARACTER PRINTF SCANF INT FLOAT CHAR FOR IF ELSE TRUE FALSE NUMBER FLOAT_NUM ID LE GE EQ NE GT LT AND OR STR ADD MULTIPLY DIVIDE SUBTRACT UNARY INCLUDE RETURN
+%token VOID
 
-%token PRINTFF SCANFF INT FLOAT CHAR VOID RETURN FOR IF ELSE INCLUDE TRUE FALSE
-%token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
-
-%type program statement declaration control_flow function_call
-
-%left '+' '-'
-%left '*' '/'
-%right UNARY
+// Tipos de dados para a análise sintática
+%type <nd_obj> headers main body return_stmt datatype expression statement init value arithmetic relop program condition else_stmt // Corrigido: nomes mais descritivos
 
 %%
 
-program:
-    program statement
-  | statement
-  ;
+program: 
+	headers main '(' ')' '{' body return_stmt '}' 
+	{ 
+		$2.nd = mknode($6.nd, $7.nd, "main"); 
+		$$.nd = mknode($1.nd, $2.nd, "program"); 
+		head = $$.nd; 
+	} 
+;
 
-statement:
-    expression ';'
-  | declaration ';'
-  | control_flow
-  | INCLUDE ID
-  | PRINTFF STR ';' { printf("%s\n", $2); }
-  ;
+headers: 
+	headers headers { $$.nd = mknode($1.nd, $2.nd, "headers"); }
+	| INCLUDE { $$.nd = mknode(NULL, NULL, $1.name); insertSymbol($1.name, "N/A", "Header"); } // Inserindo header na tabela
+;
 
-expression:
-    assignment
-  | conditional_expression
-  ;
+main: 
+	datatype ID { $$.nd = mknode(NULL, NULL, "main"); insertSymbol($2.name, $1.name, "Function"); } // Inserindo função main
+;
 
-conditional_expression:
-    logical_or_expression
-  | logical_or_expression '?' expression ':' expression
-  ;
+datatype: 
+	INT { strcpy(currentType, "int"); }
+	| FLOAT { strcpy(currentType, "float"); }
+	| CHAR { strcpy(currentType, "char"); }
+	| VOID { strcpy(currentType, "void"); }
+;
 
-logical_or_expression:
-    logical_and_expression
-  | logical_and_expression OR logical_or_expression
-  ;
+body: 
+	FOR '(' statement ';' condition ';' statement ')' '{' body '}' 
+	{ 
+		struct node *temp = mknode($4.nd, $6.nd, "CONDITION"); 
+		struct node *temp2 = mknode($2.nd, temp, "CONDITION"); 
+		$$.nd = mknode(temp2, $9.nd, "FOR"); 
+	}
+	| IF '(' condition ')' '{' body '}' else_stmt  // Corrigido: else_stmt
+	{ 
+		struct node *iff = mknode($4.nd, $7.nd, "IF"); 	
+		$$.nd = mknode(iff, $9.nd, "if-else"); 
+	}
+	| statement ';' 
+	{ 
+		$$.nd = $1.nd; 
+	}
+	| body body 
+	{ 
+		$$.nd = mknode($1.nd, $2.nd, "statements"); 
+	}
+	| PRINTF '(' STR ')' ';' 
+	{ 
+		$$.nd = mknode(NULL, NULL, "printf"); 
+	}
+	| SCANF '(' STR ',' '&' ID ')' ';' 
+	{ 
+		$$.nd = mknode(NULL, NULL, "scanf"); 
+	}
+;
 
-logical_and_expression:
-    equality_expression
-  | equality_expression AND logical_and_expression
-  ;
+else_stmt:  // Corrigido: else_stmt
+	ELSE '{' body '}' 
+	{ 
+		$$.nd = mknode(NULL, $3.nd, "ELSE"); 
+	}
+	| 
+	{ 
+		$$.nd = NULL; 
+	}
+;
 
-equality_expression:
-    relational_expression
-  | equality_expression EQ relational_expression
-  | equality_expression NE relational_expression
-  ;
+condition: 
+	value relop value 
+	{ 
+		$$.nd = mknode($1.nd, $3.nd, $2.name); 
+	}
+	| TRUE  
+	{ 
+		$$.nd = NULL; 
+	}
+	| FALSE 
+	{ 
+		$$.nd = NULL; 
+	}
+	| 
+	{ 
+		$$.nd = NULL; 
+	}
+;
 
-relational_expression:
-    additive_expression
-  | additive_expression LE additive_expression
-  | additive_expression GE additive_expression
-  | additive_expression LT additive_expression
-  | additive_expression GT additive_expression
-  ;
+statement: 
+	datatype ID init 
+	{ 
+		$2.nd = mknode(NULL, NULL, $2.name); 
+		$$.nd = mknode($2.nd, $3.nd, "declaration"); 
+        insertSymbol($2.name, currentType, "Variable"); // Inserindo variável
+	}
+	| ID '=' expression 
+	{ 
+		$1.nd = mknode(NULL, NULL, $1.name); 
+		$$.nd = mknode($1.nd, $3.nd, "="); 
+	}
+	| ID relop expression 
+	{ 
+		$1.nd = mknode(NULL, NULL, $1.name); 
+		$$.nd = mknode($1.nd, $3.nd, $2.name); 
+	}
+	| ID UNARY 
+	{ 
+		$1.nd = mknode(NULL, NULL, $1.name); 
+		$2.nd = mknode(NULL, NULL, $2.name); 
+		$$.nd = mknode($1.nd, $2.nd, "ITERATOR"); 
+	}
+	| UNARY ID 
+	{ 
+		$1.nd = mknode(NULL, NULL, $1.name); 
+		$2.nd = mknode(NULL, NULL, $2.name); 
+		$$.nd = mknode($1.nd, $2.nd, "ITERATOR"); 
+	}
+;
 
-additive_expression:
-    multiplicative_expression
-  | additive_expression ADD multiplicative_expression
-  | additive_expression SUBTRACT multiplicative_expression
-  ;
+init: 
+	'=' value 
+	{ 
+		$$.nd = $2.nd; 
+	}
+	| 
+	{ 
+		$$.nd = mknode(NULL, NULL, "NULL"); 
+	}
+;
 
-multiplicative_expression:
-    unary_expression
-  | multiplicative_expression MULTIPLY unary_expression
-  | multiplicative_expression DIVIDE unary_expression
-  ;
+expression: 
+	expression arithmetic expression 
+	{ 
+		$$.nd = mknode($1.nd, $3.nd, $2.name); 
+	}
+	| value 
+	{ 
+		$$.nd = $1.nd; 
+	}
+;
 
-unary_expression:
-    primary_expression
-  | SUBTRACT primary_expression
-  ;
+arithmetic: 
+	ADD 
+	| SUBTRACT 
+	| MULTIPLY
+	| DIVIDE
+;
 
-primary_expression:
-    NUMBER
-  | FLOAT_NUM
-  | '(' expression ')'
-  | function_call
-  ;
+relop: 
+	LT
+	| GT
+	| LE
+	| GE
+	| EQ
+	| NE
+;
 
-assignment:
-    ID '=' expression
-  ;
+value: 
+	NUMBER 
+	{ 
+		$$.nd = mknode(NULL, NULL, $1.name); 
+	}
+	| FLOAT_NUM 
+	{ 
+		$$.nd = mknode(NULL, NULL, $1.name); 
+	}
+	| CHARACTER 
+	{ 
+		$$.nd = mknode(NULL, NULL, $1.name); 
+	}
+	| ID 
+	{ 
+		$$.nd = mknode(NULL, NULL, $1.name); 
+	}
+;
 
-declaration:
-    type ID
-  | type ID '=' expression
-  ;
-
-type:
-    INT
-  | FLOAT
-  | CHAR
-  | VOID
-  ;
-
-control_flow:
-    IF '(' expression ')' statement 
-  | IF '(' expression ')' statement ELSE statement
-  | FOR '(' declaration ';' expression ';' assignment ')' statement
-  ;
-
-function_call:
-    ID '(' argument_list ')'
-  ;
-
-argument_list:
-    argument_list ',' expression
-  | expression
-  ;
+return_stmt: // Corrigido: return_stmt
+	RETURN value ';' 
+	{ 
+		$1.nd = mknode(NULL, NULL, "return"); 
+		$$.nd = mknode($1.nd, $3.nd, "RETURN"); 
+	}
+	| 
+	{ 
+		$$.nd = NULL; 
+	}
+;
 
 %%
 
-void yyerror(const char *s) {
-    extern int yylineno;
-    fprintf(stderr, "Erro: %s na linha %d\n", s, yylineno);
+// Função para criar um novo nó na árvore sintática
+struct node* mknode(struct node *left, struct node *right, char *token) {
+	struct node *newnode = (struct node *)malloc(sizeof(struct node));
+	newnode->token = strdup(token); 
+	newnode->left = left;
+	newnode->right = right;
+	return newnode;
 }
 
-int main(int argc, char **argv) {
-    if (yyparse() == 0) {
-        printf("Parsing completed successfully!\n");
+// Função para imprimir a árvore sintática (em ordem)
+void printtree(struct node* tree) {
+	printf("\n\n Inorder traversal of the Parse Tree: \n\n");
+	printInorder(tree);
+	printf("\n\n");
+}
+
+void printInorder(struct node *tree) {
+	if (tree == NULL) {
+		return; 
+	}
+
+	printInorder(tree->left);
+	printf("%s, ", tree->token);
+	printInorder(tree->right);
+}
+
+// Função para lidar com erros sintáticos
+void yyerror(const char* msg) {
+	fprintf(stderr, "Erro Sintático: %s\n", msg);
+	exit(1);
+} 
+
+// Função principal
+int main() {
+	yyparse();
+
+	printf("\n\n\t\t\t\t\t\t PHASE 1: LEXICAL ANALYSIS \n\n");
+	printf("\nSYMBOL   DATATYPE   TYPE   LINE NUMBER \n");
+	printf("_______________________________________\n\n");
+
+	for (int i = 0; i < count; i++) {
+		printf("%s\t%s\t%s\t%d\t\n", symbolTable[i].id_name, symbolTable[i].data_type, symbolTable[i].type, symbolTable[i].line_no);
+	}
+
+    for (int i = 0; i < count; i++) {
+        free(symbolTable[i].id_name);
+        free(symbolTable[i].data_type);
+        free(symbolTable[i].type);
     }
-    return 0;
+
+	printf("\n\n");
+	printf("\t\t\t\t\t\t PHASE 2: SYNTAX ANALYSIS \n\n");
+	printtree(head); 
+	printf("\n\n");
+
+	return 0;
+}
+
+void insertSymbol(char *id, char *dataType, char *symbolType) {
+    for (int i = 0; i < count; i++) {
+        if (strcmp(symbolTable[i].id_name, id) == 0) {
+            return;
+        }
+    }
+    symbolTable[count].id_name = strdup(id);
+    symbolTable[count].data_type = strdup(dataType);
+    symbolTable[count].line_no = countn;
+    symbolTable[count].type = strdup(symbolType);
+
+    count++;
 }

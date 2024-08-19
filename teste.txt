@@ -1,25 +1,19 @@
-mostrar "Olá, mundo!";
-declarar_int idade = 25;
-declarar_float altura = 1.75;
+incluir_biblioteca biblioteca_teste
 
-se idade >= 18 entao
-    mostrar "Você é maior de idade.";
-senão
-    mostrar "Você é menor de idade.";
+declarar_int contador = 0;
 
-para_cada i de 1 até 10 faça
+se (contador < 10) entao {
+    mostrar "Contador é menor que 10\n";
+    contador = contador + 1;
+}
+
+se (contador == 10) entao 
+    mostrar "Contador agora é 10\n";
+
+para_cada (declarar_int i = 0; i < 5; i = i + 1) {
+    mostrar "Iteração: ";
     mostrar i;
-fim_para
-
-funcao somar(a, b) {
-    declarar_int resultado;
-    resultado = a + b;
-    retornar resultado;
+    mostrar "\n";
 }
 
-principal() {
-    declarar_int x, y;
-    x = 10;
-    y = 5;
-    mostrar somar(x, y);
-}
+mostrar "Fim do programa\n";
