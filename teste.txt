@@ -2,7 +2,7 @@ declarar_int x;
 declarar_int y;
 x recebe 10;
 y recebe 5;
-mostrar somar(x, y);
+somar(x, y);
 
 funcao somar(a, b) {
     declarar_int resultado;
@@ -11,16 +11,16 @@ funcao somar(a, b) {
 }
 
 funcao teste(){
-    mostrar "Olá, mundo!";
     declarar_int idade recebe 25;
     declarar_float altura recebe 1.75;
 
-    se idade >= 18 entao
+    se idade >= 18 { 
         mostrar "Você é maior de idade.";
-    senao
+    }  senao {
         mostrar "Você é menor de idade.";
+    }
 
-    para_cada i de 1 até 10 faça
+    para_cada i de 1 até 10 faça {
         mostrar i;
-    fim_para
+    } fim_para;
 }

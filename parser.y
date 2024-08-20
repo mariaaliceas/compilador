@@ -17,7 +17,7 @@ char *name;
 %nonassoc ELSE
 %token PRINTFF SCANFF INT FLOAT CHAR VOID RETURN FOR INCLUDE TRUE FALSE FUNCTION
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
-%token LPAREN RPAREN COMMA NEWLINE SEMICOLON ASSIGN
+%token LPAREN RPAREN COMMA NEWLINE SEMICOLON ASSIGN LKEY RKEY
 %type program statement declaration control_flow function_call expression conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression assignment
 %left '+' '-'
 %left '*' '/'
@@ -36,13 +36,16 @@ statement:
 expression SEMICOLON
 | declaration
 | control_flow
-| INCLUDE ID SEMICOLON
 | function_call SEMICOLON
+| INCLUDE ID SEMICOLON
+| RETURN expression SEMICOLON
+| PRINTFF type SEMICOLON
 ;
 
 expression:
 assignment
 | conditional_expression
+| function_call
 ;
 
 conditional_expression:
@@ -102,17 +105,7 @@ NUMBER
 ;
 
 function_definition:
-FUNCTION ID LPAREN parameter_list RPAREN '{' statement_list '}'
-;
-
-parameter_list:
-parameter_declaration
-| parameter_list COMMA parameter_declaration
-| 
-;
-
-parameter_declaration:
-type ID
+FUNCTION ID LPAREN argument_list RPAREN LKEY statement_list RKEY
 ;
 
 statement_list:
@@ -155,7 +148,10 @@ expression
 %%
 void yyerror(const char *s) {
 extern int yylineno;
+extern char *yytext;
+
 fprintf(stderr, "Erro: %s na linha %d\n", s, yylineno);
+fprintf(stderr, "Ultimo texto encontrado: '%s'\n", yytext);
 }
 int main(int argc, char **argv) {
 if (yyparse() == 0) {

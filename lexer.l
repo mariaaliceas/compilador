@@ -2,7 +2,6 @@
 #include "parser.tab.h" 
 #include <stdlib.h>
 #include <string.h>
-
 %}
 
 digit [0-9]
@@ -12,7 +11,7 @@ number {digit}+(\.{digit}+)?
 %%
 
 "mostrar"               { printf("Token: PRINTFF, Valor: %s\n", yytext); return PRINTFF; }
-"scanf"                { printf("Token: SCANFF, Valor: %s\n", yytext); return SCANFF; }
+"scanf"                 { printf("Token: SCANFF, Valor: %s\n", yytext); return SCANFF; }
 "declarar_int"          { printf("Token: INT, Valor: %s\n", yytext); return INT; }
 "declarar_float"        { printf("Token: FLOAT, Valor: %s\n", yytext); return FLOAT; }
 "declarar_char"         { printf("Token: CHAR, Valor: %s\n", yytext); return CHAR; }
@@ -27,9 +26,13 @@ number {digit}+(\.{digit}+)?
 "falso"                 { printf("Token: FALSE, Valor: %s\n", yytext); return FALSE; }
 "("                     { printf("Token: LPAREN\n"); return LPAREN; }
 ")"                     { printf("Token: RPAREN\n"); return RPAREN; }
+"{"                     { printf("Token: LKEY\n"); return LKEY; }
+"}"                     { printf("Token: RKEY\n"); return RKEY; }
 ","                     { printf("Token: COMMA\n"); return COMMA; }
-"\n"                    { printf("Token: NEWLINE\n"); return NEWLINE; }
+\n                      { yylineno++; printf("Token: NEWLINE\n"); return NEWLINE; }
 "recebe"                { printf("Token: ASSIGN, Valor: %s\n", yytext); return ASSIGN; }
+\"[^\"]*\"              { printf("Token: STR, Valor: %s\n", yytext); yylval.name = strdup(yytext); return STR; }
+"\'[^\']\'"             { printf("Token: CHARACTER, Valor: %s\n", yytext); return CHARACTER; }
 [a-zA-Z_][a-zA-Z0-9_]*  { printf("Token: ID, Valor: %s\n", yytext); return ID; }
 "<="                    { printf("Token: LE, Valor: %s\n", yytext); return LE; }
 ">="                    { printf("Token: GE, Valor: %s\n", yytext); return GE; }
@@ -44,8 +47,6 @@ number {digit}+(\.{digit}+)?
 "/"                     { printf("Token: DIVIDE, Valor: %s\n", yytext); return DIVIDE; }
 ";"                     { printf("Token: SEMICOLON\n"); return SEMICOLON; }
 "*"                     { printf("Token: MULTIPLY, Valor: %s\n", yytext); return MULTIPLY; }
-"\'[^\']\'"             { printf("Token: CHARACTER, Valor: %s\n", yytext); return CHARACTER; }
-\"[^\"]*\"              { printf("Token: STR, Valor: %s\n", yytext); yylval.name = strdup(yytext); return STR; }
 [ \t]+                  { }
 {number}                { printf("Token: %s, Valor: %s\n", (strchr(yytext, '.') ? "FLOAT_NUM" : "NUMBER"), yytext); return (strchr(yytext, '.') ? FLOAT_NUM : NUMBER); }
 {unary}                 { printf("Token: UNARY, Valor: %s\n", yytext); return UNARY; }
