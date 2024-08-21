@@ -4,23 +4,8 @@ x recebe 10;
 y recebe 5;
 somar(x, y);
 
-funcao somar(a, b) {
-    declarar_int resultado;
-    resultado recebe a + b;
-    retornar resultado;
-}
+funcao somar(a, b) {declarar_int resultado;resultado recebe a + b;retornar resultado;}
 
-funcao teste(){
-    declarar_int idade recebe 25;
-    declarar_float altura recebe 1.75;
+funcao teste() {declarar_int idade; idade recebe 25; declarar_float altura; altura recebe 1.75; se (idade >= 18) mostrar "Você é maior de idade."; senao mostrar "Você é menor de idade.";}
 
-    se idade >= 18 { 
-        mostrar "Você é maior de idade.";
-    }  senao {
-        mostrar "Você é menor de idade.";
-    }
-
-    para_cada i de 1 até 10 faça {
-        mostrar i;
-    } fim_para;
-}
+funcao laco() {declarar_int i;para_cada (i recebe 0; i <= 10) mostrar i; fim_para;}

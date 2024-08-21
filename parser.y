@@ -13,7 +13,7 @@ char *name;
 %token <intval> NUMBER
 %token <floatval> FLOAT_NUM
 %token <name> ID STR CHARACTER
-%left IF
+%left IF 
 %nonassoc ELSE
 %token PRINTFF SCANFF INT FLOAT CHAR VOID RETURN FOR INCLUDE TRUE FALSE FUNCTION
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
@@ -39,7 +39,8 @@ expression SEMICOLON
 | function_call SEMICOLON
 | INCLUDE ID SEMICOLON
 | RETURN expression SEMICOLON
-| PRINTFF type SEMICOLON
+| PRINTFF expression SEMICOLON
+| PRINTFF STR SEMICOLON 
 ;
 
 expression:
@@ -126,13 +127,14 @@ type:
 INT
 | FLOAT
 | CHAR
+| STR
 | VOID
 ;
 
 control_flow:
 IF LPAREN expression RPAREN statement
 | IF LPAREN expression RPAREN statement ELSE statement
-| FOR LPAREN declaration SEMICOLON expression SEMICOLON assignment RPAREN statement
+| FOR LPAREN expression SEMICOLON expression RPAREN statement
 ;
 
 function_call:
