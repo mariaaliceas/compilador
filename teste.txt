@@ -1,11 +1,9 @@
-declarar_int x;
-declarar_int y;
-x recebe 10;
-y recebe 5;
-somar(x, y);
+funcao principal(){declarar_int x;declarar_int y;x recebe 10;y recebe 5;somar(x, y);}
 
 funcao somar(a, b) {declarar_int resultado;resultado recebe a + b;retornar resultado;}
 
-funcao teste() {declarar_int idade; idade recebe 25; declarar_float altura; altura recebe 1.75; se (idade >= 18) mostrar "Você é maior de idade."; senao mostrar "Você é menor de idade.";}
+funcao decisao(age) {declarar_int idade; idade recebe 25; declarar_float altura; altura recebe 1.75; se (idade >= 18) mostrar "Você é maior de idade."; senao mostrar "Você é menor de idade.";}
 
-funcao laco() {declarar_int i;para_cada (i recebe 0; i <= 10) mostrar i; fim_para;}
+funcao repeticao() {declarar_int i;para_cada (i recebe 0; i <= 10) mostrar i; fim_para;}
+
+decisao(15);
