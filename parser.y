@@ -12,14 +12,14 @@ void yyerror(const char *s);
     char *name;
 }
 
-%token <intval> NUMBER
-%token <floatval> FLOAT_NUM
-%token <name> ID STR CHARACTER
+%token <intval> INT
+%token <floatval> FLOAT
+%token <name> STR CHARACTER
 
 %left IF 
 %nonassoc ELSE
 
-%token PRINTFF SCANFF INT FLOAT CHAR VOID RETURN FOR INCLUDE TRUE FALSE FUNCTION
+%token PRINTFF SCANFF CHAR VOID RETURN FOR INCLUDE TRUE FALSE FUNCTION ID
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
 %token LPAREN RPAREN COMMA NEWLINE SEMICOLON ASSIGN LKEY RKEY
 
@@ -102,8 +102,8 @@ unary_expression:
       ;
 
 primary_expression:
-      NUMBER
-      | FLOAT_NUM
+      INT
+      | FLOAT
       | STR
       | CHARACTER
       | LPAREN expression RPAREN
@@ -149,11 +149,12 @@ else:
       ;
 
 function_call:
-      ID LPAREN parameter_list RPAREN
+      ID LPAREN parameter_list RPAREN SEMICOLON
       ;
 
 parameter:
       ID
+      | type
       ;
 
 parameter_list:
@@ -167,7 +168,7 @@ void yyerror(const char *s) {
     extern char *yytext;
 
     fprintf(stderr, "Erro: %s na linha %d\n", s, yylineno);
-    fprintf(stderr, "Ultimo token encontrado: '%s'\n", yytext);
+    fprintf(stderr, "Ultimo token encontrado: %s\n", yytext);
 }
 
 int main(int argc, char **argv) { 

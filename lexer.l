@@ -48,7 +48,7 @@ number {digit}+(\.{digit}+)?
 ";"                     { printf("Token: SEMICOLON\n"); return SEMICOLON; }
 "*"                     { printf("Token: MULTIPLY, Valor: %s\n", yytext); return MULTIPLY; }
 [ \t]+                  { }
-{number}                { printf("Token: %s, Valor: %s\n", (strchr(yytext, '.') ? "FLOAT_NUM" : "NUMBER"), yytext); return (strchr(yytext, '.') ? FLOAT_NUM : NUMBER); }
+{number}                { printf("Token: %s, Valor: %s\n", (strchr(yytext, '.') ? "FLOAT" : "INT"), yytext); return (strchr(yytext, '.') ? FLOAT : INT); }
 {unary}                 { printf("Token: UNARY, Valor: %s\n", yytext); return UNARY; }
 
 %%

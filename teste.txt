@@ -10,9 +10,10 @@ funcao somar(a, b) {
     retornar resultado;
 }
 
-funcao teste() {
+funcao decisao(age) {
+
     declarar_int idade;
-    idade recebe 25;
+    idade recebe age;
     declarar_float altura;
     altura recebe 1.75;
 
@@ -24,10 +25,12 @@ funcao teste() {
     }
 }
 
-funcao laco() {
+funcao repeticao() {
     declarar_int i;
-    
+
     para_cada (i recebe 0; i <= 10) {
         mostrar i;
     }
 }
+
+decisao(15);
