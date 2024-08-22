@@ -15,12 +15,10 @@ void insert_symbol(const char *name, const char *type, int scope)
         return;
     }
 
-    // Verifica se o símbolo já existe no mesmo escopo
     for (int i = 0; i < symbol_table.size; i++)
     {
         if (strcmp(symbol_table.symbols[i].name, name) == 0 && symbol_table.symbols[i].scope == scope)
         {
-            // Atualiza o tipo do símbolo existente
             strncpy(symbol_table.symbols[i].type, type, sizeof(symbol_table.symbols[i].type) - 1);
             symbol_table.symbols[i].type[sizeof(symbol_table.symbols[i].type) - 1] = '\0';
             printf("Aviso: símbolo '%s' já existe no escopo %d. Tipo atualizado.\n", name, scope);
@@ -34,7 +32,6 @@ void insert_symbol(const char *name, const char *type, int scope)
         return;
     }
 
-    // Insere o novo símbolo na tabela
     strncpy(symbol_table.symbols[symbol_table.size].name, name, sizeof(symbol_table.symbols[symbol_table.size].name) - 1);
     symbol_table.symbols[symbol_table.size].name[sizeof(symbol_table.symbols[symbol_table.size].name) - 1] = '\0';
 
@@ -60,7 +57,7 @@ Symbol *lookup_symbol(const char *name)
             return &symbol_table.symbols[i];
         }
     }
-    return NULL; // Retorna NULL se não encontrado
+    return NULL;
 }
 
 void print_symbol_table()

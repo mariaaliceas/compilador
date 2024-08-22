@@ -10,7 +10,7 @@ typedef struct
 
 typedef struct
 {
-    Symbol symbols[1000000]; // Você pode definir um tamanho maior se necessário
+    Symbol symbols[1000000];
     int size;
 } SymbolTable;
 

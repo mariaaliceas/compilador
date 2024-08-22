@@ -2,12 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "symbol_table.h"  // Incluir o arquivo de cabeçalho da tabela de símbolos
+#include "symbol_table.h" 
 
 extern int yylex();
 void yyerror(const char *s);
 
-// Variável para controlar o escopo
 int current_scope = 0;
 
 %}
@@ -21,7 +20,7 @@ int current_scope = 0;
 %token <intval> INT
 %token <floatval> FLOAT
 %token <name> STR CHARACTER
-%token <name> ID  // Adicione esta linha para declarar o tipo do ID
+%token <name> ID
 
 %left IF 
 %nonassoc ELSE
@@ -30,8 +29,8 @@ int current_scope = 0;
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
 %token LPAREN RPAREN COMMA NEWLINE SEMICOLON ASSIGN LKEY RKEY
 
-%type <name> type // Tipo para type deve ser <name>
-%type <name> function_definition // Tipo para function_definition
+%type <name> type
+%type <name> function_definition
 
 %type program statement declaration control_flow function_call expression conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression assignment
 
@@ -124,9 +123,8 @@ primary_expression:
 function_definition:
       FUNCTION ID LPAREN parameter_list RPAREN LKEY statement_list RKEY {
           insert_symbol($2, "function", current_scope);
-          current_scope++; // Entrando em escopo local
-          /* processar corpo da função */
-          current_scope--; // Saindo do escopo local
+          current_scope++; 
+          current_scope--;
       }
       ;
 
@@ -198,7 +196,7 @@ void yyerror(const char *s) {
 int main(int argc, char **argv) { 
     if (yyparse() == 0) {
         printf("Parsing completed successfully!\n");
-        print_symbol_table();  // Imprimir a tabela de símbolos ao final da análise
+        print_symbol_table(); 
     }
     return 0;
 }
