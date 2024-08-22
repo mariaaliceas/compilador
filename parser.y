@@ -2,8 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "symbol_table.h"  // Incluir o arquivo de cabeçalho da tabela de símbolos
+
 extern int yylex();
 void yyerror(const char *s);
+
+// Variável para controlar o escopo
+int current_scope = 0;
+
 %}
 
 %union {
@@ -15,13 +21,17 @@ void yyerror(const char *s);
 %token <intval> INT
 %token <floatval> FLOAT
 %token <name> STR CHARACTER
+%token <name> ID  // Adicione esta linha para declarar o tipo do ID
 
 %left IF 
 %nonassoc ELSE
 
-%token PRINTFF SCANFF CHAR VOID RETURN FOR INCLUDE TRUE FALSE FUNCTION ID
+%token PRINTFF SCANFF CHAR VOID RETURN FOR INCLUDE TRUE FALSE FUNCTION 
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
 %token LPAREN RPAREN COMMA NEWLINE SEMICOLON ASSIGN LKEY RKEY
+
+%type <name> type // Tipo para type deve ser <name>
+%type <name> function_definition // Tipo para function_definition
 
 %type program statement declaration control_flow function_call expression conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression assignment
 
@@ -43,7 +53,7 @@ statement:
       | expression SEMICOLON
       | declaration
       | control_flow
-      | function_call SEMICOLON
+      | function_call
       | INCLUDE ID SEMICOLON
       | RETURN expression SEMICOLON
       | PRINTFF expression SEMICOLON
@@ -112,7 +122,12 @@ primary_expression:
       ;
 
 function_definition:
-      FUNCTION ID LPAREN parameter_list RPAREN LKEY statement_list RKEY
+      FUNCTION ID LPAREN parameter_list RPAREN LKEY statement_list RKEY {
+          insert_symbol($2, "function", current_scope);
+          current_scope++; // Entrando em escopo local
+          /* processar corpo da função */
+          current_scope--; // Saindo do escopo local
+      }
       ;
 
 statement_list:
@@ -121,20 +136,29 @@ statement_list:
       ;
 
 assignment:
-      ID ASSIGN expression
+      ID ASSIGN expression {
+          Symbol *sym = lookup_symbol($1);
+          if (!sym) {
+              yyerror("Variável não declarada");
+          }
+      }
       ;
 
 declaration:
-      type ID SEMICOLON
-      | type ID ASSIGN expression SEMICOLON
-      ;
+      type ID SEMICOLON {
+          insert_symbol($2, $1, current_scope);
+      }
+    | type ID ASSIGN expression SEMICOLON {
+          insert_symbol($2, $1, current_scope);
+      }
+    ;
 
 type:
-      INT
-      | FLOAT
-      | CHAR
-      | STR
-      | VOID
+      INT { $$ = "int"; }
+      | FLOAT { $$ = "float"; }
+      | CHAR { $$ = "char"; }
+      | STR { $$ = "string"; }
+      | VOID { $$ = "void"; }
       ;
 
 control_flow:
@@ -168,12 +192,13 @@ void yyerror(const char *s) {
     extern char *yytext;
 
     fprintf(stderr, "Erro: %s na linha %d\n", s, yylineno);
-    fprintf(stderr, "Ultimo token encontrado: %s\n", yytext);
+    fprintf(stderr, "Último token encontrado: %s\n", yytext);
 }
 
 int main(int argc, char **argv) { 
     if (yyparse() == 0) {
         printf("Parsing completed successfully!\n");
+        print_symbol_table();  // Imprimir a tabela de símbolos ao final da análise
     }
     return 0;
 }
