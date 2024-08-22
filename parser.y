@@ -9,7 +9,7 @@ void yyerror(const char *s);
 %union {
     int intval;
     float floatval;
-    char *name;
+    char *name; 
 }
 
 %token <intval> INT
@@ -21,7 +21,7 @@ void yyerror(const char *s);
 
 %token PRINTFF SCANFF CHAR VOID RETURN FOR INCLUDE TRUE FALSE FUNCTION ID
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
-%token LPAREN RPAREN COMMA NEWLINE SEMICOLON ASSIGN LKEY RKEY
+%token LPAREN RPAREN COMMA NEWLINE SEMICOLON ASSIGN LKEY RKEY RBRACKET LBRACKET
 
 %type program statement declaration control_flow function_call expression conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression assignment
 
@@ -43,16 +43,17 @@ statement:
       | expression SEMICOLON
       | declaration
       | control_flow
-      | function_call SEMICOLON
+      | function_call
       | INCLUDE ID SEMICOLON
       | RETURN expression SEMICOLON
       | PRINTFF expression SEMICOLON
-      | PRINTFF STR SEMICOLON
+      | PRINTFF type SEMICOLON
       ;
 
 expression:
       assignment
       | conditional_expression
+      | array_position
       ;
 
 conditional_expression:
@@ -120,13 +121,29 @@ statement_list:
       | statement_list statement
       ;
 
-assignment:
-      ID ASSIGN expression
+assignment: 
+      ID ASSIGN expression 
+      | ID ASSIGN array_list
+      | array_position ASSIGN expression
+      ;
+
+array_position:
+      ID LBRACKET INT RBRACKET
+      ;
+
+array_list:
+      LBRACKET array_arguments RBRACKET
+      ;
+
+array_arguments:
+      INT
+      | array_arguments COMMA INT
       ;
 
 declaration:
       type ID SEMICOLON
       | type ID ASSIGN expression SEMICOLON
+      | type ID LBRACKET INT RBRACKET SEMICOLON
       ;
 
 type:

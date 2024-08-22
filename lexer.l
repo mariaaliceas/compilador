@@ -28,6 +28,8 @@ number {digit}+(\.{digit}+)?
 ")"                     { printf("Token: RPAREN\n"); return RPAREN; }
 "{"                     { printf("Token: LKEY\n"); return LKEY; }
 "}"                     { printf("Token: RKEY\n"); return RKEY; }
+"["                     { printf("Token: LBRACKET\n"); return LBRACKET; }
+"]"                     { printf("Token: RBRACKET\n"); return RBRACKET; }
 ","                     { printf("Token: COMMA\n"); return COMMA; }
 \n                      { yylineno++; printf("Token: NEWLINE\n"); return NEWLINE; }
 "recebe"                { printf("Token: ASSIGN, Valor: %s\n", yytext); return ASSIGN; }
