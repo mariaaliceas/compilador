@@ -35,7 +35,7 @@ number {digit}+(\.{digit}+)?
 "recebe"                { printf("Token: ASSIGN, Valor: %s\n", yytext); return ASSIGN; }
 \"[^\"]*\"              { printf("Token: STR, Valor: %s\n", yytext); yylval.name = strdup(yytext); return STR; }
 "\'[^\']\'"             { printf("Token: CHARACTER, Valor: %s\n", yytext); return CHARACTER; }
-[a-zA-Z_][a-zA-Z0-9_]*  { printf("Token: ID, Valor: %s\n", yytext); return ID; }
+[a-zA-Z_][a-zA-Z0-9_]*  { printf("Token: ID, Valor: %s\n", yytext);  yylval.name = strdup(yytext); return ID; }
 "<="                    { printf("Token: LE, Valor: %s\n", yytext); return LE; }
 ">="                    { printf("Token: GE, Valor: %s\n", yytext); return GE; }
 "=="                    { printf("Token: EQ, Valor: %s\n", yytext); return EQ; }

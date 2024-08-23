@@ -3,27 +3,44 @@
 #include <stdlib.h>
 #include <string.h>
 extern int yylex();
+extern int yylineno;
+
 void yyerror(const char *s);
+
+typedef struct symbol {
+    char *name;            
+    char *type;
+    char *scope;
+    int line;         
+} symbol;
+
+symbol *symbolTable[30];
+int count = 0;
+
+symbol *create(char *name, char *type, int line);
+void printTable();
+
 %}
 
 %union {
     int intval;
     float floatval;
-    char *name; 
+    char *name;
 }
-
-%token <intval> INT
-%token <floatval> FLOAT
-%token <name> STR CHARACTER
 
 %left IF 
 %nonassoc ELSE
 
-%token PRINTFF SCANFF CHAR VOID RETURN FOR INCLUDE TRUE FALSE FUNCTION ID
+%token PRINTFF SCANFF CHAR VOID RETURN FOR INCLUDE TRUE FALSE FUNCTION
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
-%token LPAREN RPAREN COMMA NEWLINE SEMICOLON ASSIGN LKEY RKEY RBRACKET LBRACKET
+%token LPAREN RPAREN COMMA NEWLINE ASSIGN LKEY RKEY RBRACKET LBRACKET SEMICOLON
+
+%token <intval> INT
+%token <floatval> FLOAT
+%token <name> STR CHARACTER ID
 
 %type program statement declaration control_flow function_call expression conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression assignment
+%type <name> type
 
 %left '+' '-'
 %left '*' '/'
@@ -141,18 +158,24 @@ array_arguments:
       ;
 
 declaration:
-      type ID SEMICOLON
-      | type ID ASSIGN expression SEMICOLON
-      | type ID LBRACKET INT RBRACKET SEMICOLON
-      ;
+      type ID SEMICOLON {
+          create($2, $1, yylineno);
+      }
+    | type ID ASSIGN expression SEMICOLON {
+          create($2, $1, yylineno);
+      }
+    | type ID LBRACKET INT RBRACKET SEMICOLON {
+          create($2, $1, yylineno);
+      }
+    ;
 
 type:
-      INT
-      | FLOAT
-      | CHAR
-      | STR
-      | VOID
-      ;
+      INT     { $$ = strdup("INT"); }
+    | FLOAT   { $$ = strdup("FLOAT"); }
+    | CHAR    { $$ = strdup("CHAR"); }
+    | STR     { $$ = strdup("STR"); }
+    | VOID    { $$ = strdup("VOID"); }
+    ;
 
 control_flow:
       IF LPAREN expression RPAREN LKEY statement_list RKEY
@@ -191,6 +214,62 @@ void yyerror(const char *s) {
 int main(int argc, char **argv) { 
     if (yyparse() == 0) {
         printf("Parsing completed successfully!\n");
+        printTable();
     }
     return 0;
+}
+
+symbol *create(char *name, char *type, int line) {
+    if (count >= 30) {
+        fprintf(stderr, "Erro: Tabela de símbolos cheia\n");
+        return NULL;
+    }
+
+    if (name == NULL || type == NULL) {
+        fprintf(stderr, "Erro: Argumento nulo passado para criar símbolo\n");
+        return NULL;
+    }
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(symbolTable[i]->name, name) == 0) {
+            fprintf(stderr, "Erro: Símbolo já existe\n");
+            return NULL;
+        }
+    }
+
+    symbol *newSymbol = (symbol *)malloc(sizeof(symbol));
+    if (newSymbol == NULL) {
+        perror("Erro ao alocar memória para símbolo");
+        return NULL;
+    }
+
+    newSymbol->name = strdup(name);
+    newSymbol->type = strdup(type);
+    newSymbol->scope = strdup("global");
+    newSymbol->line = line;
+    
+    if (newSymbol->name == NULL || newSymbol->type == NULL) {
+        perror("Erro ao alocar memória para campos do símbolo");
+        free(newSymbol->name);
+        free(newSymbol->type);
+        free(newSymbol);
+        return NULL;
+    }
+
+    symbolTable[count++] = newSymbol;
+
+    return newSymbol;
+}
+
+void printTable() {
+    printf("Tabela de Símbolos:\n");
+    printf("+-----------------+-----------------+-------+\n");
+    printf("| Nome            | Tipo            | Linha |\n");
+    printf("+-----------------+-----------------+-------+\n");
+
+    for (int i = 0; i < count; i++) {
+        printf("| %-15s | %-15s | %-5d |\n", symbolTable[i]->name, symbolTable[i]->type, symbolTable[i]->line);
+    }
+
+    printf("+-----------------+-----------------+-------+\n");
 }
