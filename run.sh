@@ -1,4 +1,4 @@
-flex lexer.l
-bison -d parser.y
-gcc -o notphp parser.tab.c lex.yy.c symbol_table.c -lfl
-./notphp < teste.txt
+lex lexer.l
+yacc -v -d parser.y
+gcc -w y.tab.c
+./a.out<input.txt

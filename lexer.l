@@ -1,59 +1,218 @@
 %{
-#include "parser.tab.h" 
-#include "symbol_table.h"
-#include <stdlib.h>
-#include <string.h>
+    #include "y.tab.h"
+    #include <stdio.h>
+    #include <string.h>
+    
+    int countn = 0;  // Contador de linhas
 %}
 
+%option yylineno
+
+alpha [a-zA-Z]
 digit [0-9]
 unary "++"|"--"
-number {digit}+(\.{digit}+)?  
 
 %%
 
-"mostrar"               { printf("Token: PRINTFF, Valor: %s\n", yytext); return PRINTFF; }
-"scanf"                 { printf("Token: SCANFF, Valor: %s\n", yytext); return SCANFF; }
-"declarar_int"          { printf("Token: INT, Valor: %s\n", yytext); return INT; }
-"declarar_float"        { printf("Token: FLOAT, Valor: %s\n", yytext); return FLOAT; }
-"declarar_char"         { printf("Token: CHAR, Valor: %s\n", yytext); return CHAR; }
-"declarar_vazio"        { printf("Token: VOID, Valor: %s\n", yytext); return VOID; }
-"retornar"              { printf("Token: RETURN, Valor: %s\n", yytext); return RETURN; }
-"para_cada"             { printf("Token: FOR, Valor: %s\n", yytext); return FOR; }
-"se"                    { printf("Token: IF, Valor: %s\n", yytext); return IF; }
-"funcao"                { printf("Token: FUNCTION, Valor: %s\n", yytext); return FUNCTION; }
-"senao"                 { printf("Token: ELSE, Valor: %s\n", yytext); return ELSE; }
-"incluir_biblioteca"    { printf("Token: INCLUDE, Valor: %s\n", yytext); return INCLUDE; }
-"verdadeiro"            { printf("Token: TRUE, Valor: %s\n", yytext); return TRUE; }
-"falso"                 { printf("Token: FALSE, Valor: %s\n", yytext); return FALSE; }
-"("                     { printf("Token: LPAREN\n"); return LPAREN; }
-")"                     { printf("Token: RPAREN\n"); return RPAREN; }
-"{"                     { printf("Token: LKEY\n"); return LKEY; }
-"}"                     { printf("Token: RKEY\n"); return RKEY; }
-","                     { printf("Token: COMMA\n"); return COMMA; }
-\n                      { yylineno++; printf("Token: NEWLINE\n"); return NEWLINE; }
-"recebe"                { printf("Token: ASSIGN, Valor: %s\n", yytext); return ASSIGN; }
-\"[^\"]*\"              { printf("Token: STR, Valor: %s\n", yytext); yylval.name = strdup(yytext); return STR; }
-"\'[^\']\'"             { printf("Token: CHARACTER, Valor: %s\n", yytext); return CHARACTER; }
-[a-zA-Z_][a-zA-Z0-9_]*  { printf("Token: ID, Valor: %s\n", yytext); return ID; }
-"<="                    { printf("Token: LE, Valor: %s\n", yytext); return LE; }
-">="                    { printf("Token: GE, Valor: %s\n", yytext); return GE; }
-"=="                    { printf("Token: EQ, Valor: %s\n", yytext); return EQ; }
-"!="                    { printf("Token: NE, Valor: %s\n", yytext); return NE; }
-">"                     { printf("Token: GT, Valor: %s\n", yytext); return GT; }
-"<"                     { printf("Token: LT, Valor: %s\n", yytext); return LT; }
-"&&"                    { printf("Token: AND, Valor: %s\n", yytext); return AND; }
-"||"                    { printf("Token: OR, Valor: %s\n", yytext); return OR; }
-"+"                     { printf("Token: ADD, Valor: %s\n", yytext); return ADD; }
-"-"                     { printf("Token: SUBTRACT, Valor: %s\n", yytext); return SUBTRACT; }
-"/"                     { printf("Token: DIVIDE, Valor: %s\n", yytext); return DIVIDE; }
-";"                     { printf("Token: SEMICOLON\n"); return SEMICOLON; }
-"*"                     { printf("Token: MULTIPLY, Valor: %s\n", yytext); return MULTIPLY; }
-[ \t]+                  { }
-{number}                { printf("Token: %s, Valor: %s\n", (strchr(yytext, '.') ? "FLOAT" : "INT"), yytext); return (strchr(yytext, '.') ? FLOAT : INT); }
-{unary}                 { printf("Token: UNARY, Valor: %s\n", yytext); return UNARY; }
+"mostra"                    { 
+    printf("Token MOSTRAR detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return PRINTFF; 
+}
+
+"recebe"                     { 
+    printf("Token RECEBE detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return SCANFF; 
+}
+
+"declara_inteiro"                       { 
+    printf("Token DECLARA_INTEIRO detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return INT; 
+}
+
+"declara_flutuante"                     { 
+    printf("Token DECLARA_FLUTUANTE detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return FLOAT; 
+}
+
+"declara_caracter"                      { 
+    printf("Token CARACTER detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return CHAR; 
+}
+
+"vazio"                      { 
+    printf("Token VAZIO detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return VOID; 
+}
+
+"retorna"                    { 
+    printf("Token RETORNA detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return RETURN; 
+}
+
+"laco_for"                       { 
+    printf("Token LACO_FOR detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return FOR; 
+}
+
+"se"                        { 
+    printf("Token SE detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return IF; 
+}
+
+"senao"                      { 
+    printf("Token SENAO detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return ELSE; 
+}
+
+^"#include"[ ]*<.+\.h>      { 
+    printf("Token INCLUI detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return INCLUDE; 
+}
+
+"verdadeiro"                      { 
+    printf("Token VERDADEIRO detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return TRUE; 
+}
+
+"falso"                     { 
+    printf("Token FALSO detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return FALSE; 
+}
+
+
+[-]?{digit}+                { 
+    printf("Token NUMERO detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return NUMBER; 
+}
+
+[-]?{digit}+\.{digit}{1,6}  { 
+    printf("Token NUMERO_FLUTUANTE detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return FLOAT_NUM; 
+}
+
+{alpha}({alpha}|{digit})*   { 
+    printf("Token ID detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return ID; 
+}
+
+{unary}                     { 
+    printf("Token UNARY detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return UNARY; 
+}
+
+"<="                        { 
+    printf("Token MENOR_IGUAL detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return LE; 
+}
+
+">="                        { 
+    printf("Token MAIOR_IGUAL detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return GE; 
+}
+
+"=="                        { 
+    printf("Token IGUAL detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return EQ; 
+}
+
+"!="                        { 
+    printf("Token DIFERENTE detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return NE; 
+}
+
+">"                         { 
+    printf("Token MAIOR_QUE detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return GT; 
+}
+
+"<"                         { 
+    printf("Token MENOR_QUE detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return LT; 
+}
+
+"&&"                        { 
+    printf("Token E detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return AND; 
+}
+
+"||"                        { 
+    printf("Token OU detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return OR; 
+}
+
+"+"                         { 
+    printf("Token ADICIONA detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return ADD; 
+}
+
+"-"                         { 
+    printf("Token SUBTRAI detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return SUBTRACT; 
+}
+
+"/"                         { 
+    printf("Token DIVIDE detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return DIVIDE; 
+}
+
+"*"                         { 
+    printf("Token MULTIPLICA detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return MULTIPLY; 
+}
+
+\/\/.*                      { ; }
+
+\/\*(.*\n)*.*\*\/           { ; } 
+
+[ \t]*                      { ; }
+
+[\n]                        { countn++; }
+
+.                           { return *yytext; }
+
+["].*["]                    { 
+    printf("Token STRING detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return STR; 
+}
+
+['].[']                     { 
+    printf("Token CARACTER detectado: %s\n", yytext);
+    strcpy(yylval.nd_obj.name, yytext);
+    return CHARACTER; 
+}
 
 %%
 
 int yywrap() {
-  return 1;
+    return 1;
 }

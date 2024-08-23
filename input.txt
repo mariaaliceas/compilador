@@ -1,0 +1,38 @@
+#include <stdio.h>
+
+declara_inteiro main ()
+{   
+    declara_inteiro a;
+    declara_inteiro x = 1;
+    declara_inteiro y = 2;
+    declara_inteiro z = 3;
+    x = 3;
+    y = 10;
+    z = 5;
+    se (x > 5)
+    {
+        laco_for (declara_inteiro k = 0; k < 10; k++)
+        {
+            y = x + 3;
+            mostra("Hello!");
+        }
+    }
+    senao
+    {
+        declara_flutuante idx = 1;
+    }
+    laco_for (declara_inteiro i = 0; i < 10; i++)
+    {
+        mostra("Hello World!");
+        recebe("%d", &x);
+        se (x > 5)
+        {
+            mostra("Hi");
+        }
+        laco_for (declara_inteiro j = 0; j < z; j++)
+        {
+            a = 1;
+        }
+    }
+    retorna 1;
+}
