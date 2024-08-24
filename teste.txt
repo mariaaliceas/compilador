@@ -1,18 +1,21 @@
-funcao principal() {
+incluir_biblioteca teste;
+
+funcao atribuicao() {
     declarar_int x;
     declarar_int y;
+    declarar_char frase recebe "teste";
     x recebe 10;
     y recebe 5;
     somar(x, y);
 }
 
-funcao somar(a, b) {
+funcao somar(declarar_int a, declarar_int b) {
     declarar_int resultado;
     resultado recebe a + b;
     retornar resultado;
 }
 
-funcao decisao(age) {
+funcao decisao(declarar_int age) {
 
     declarar_int idade;
     idade recebe age;
@@ -36,11 +39,13 @@ funcao repeticao() {
 }
 
 funcao vetor() {
-    declarar_int x[10];
+    declarar_int vetor[10];
 
-    x recebe [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    vetor recebe [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-    x[3] recebe 0;
+    vetor[3] recebe 0;
 
-    mostrar x[3];
+    mostrar vetor[3];
 }
+
+fim
