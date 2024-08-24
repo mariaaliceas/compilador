@@ -280,7 +280,9 @@ else:
       ;
 
 function_call:
-      ID LPAREN parameter_list RPAREN SEMICOLON
+      ID LPAREN parameter_list RPAREN SEMICOLON {
+            create($1, "FUNCTION_CALL", yylineno);
+      }
       ;
 
 

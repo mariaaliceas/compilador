@@ -48,4 +48,6 @@ funcao vetor() {
     mostrar vetor[3];
 }
 
+atribuicao();
+
 fim
