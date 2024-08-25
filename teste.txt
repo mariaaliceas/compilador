@@ -1,5 +1,13 @@
 incluir_biblioteca teste;
 
+declarar_int global recebe 3;
+
+funcao somar(declarar_int a, declarar_int b) {
+    declarar_int resultado;
+    resultado recebe a + b;
+    retornar resultado;
+}
+
 funcao atribuicao() {
     declarar_int x;
     declarar_int y;
@@ -7,12 +15,6 @@ funcao atribuicao() {
     x recebe 10;
     y recebe 5;
     somar(x, y);
-}
-
-funcao somar(declarar_int a, declarar_int b) {
-    declarar_int resultado;
-    resultado recebe a + b;
-    retornar resultado;
 }
 
 funcao decisao(declarar_int age) {
