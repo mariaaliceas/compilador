@@ -23,3 +23,6 @@ Antes de rodar o compilador, certifique-se de que o projeto não contenha inform
 - **lexer.l:** Contém as regras de análise lexical.
 - **parser.y:** Contém as regras de análise sintática e semântica.
 - **teste.txt:** Arquivo de teste que contém o código a ser analisado.
+
+
+### **Link diretório: https://github.com/mariaaliceas/compilador**
