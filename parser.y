@@ -56,7 +56,7 @@
 		} nd_obj2; 
 	} 
 %token VOID 
-%token <nd_obj> CHARACTER PRINTFF SCANFF INT FLOAT CHAR FOR IF ELSE TRUE FALSE NUMBER FLOAT_NUM ID LE GE EQ NE GT LT AND OR STR ADD MULTIPLY DIVIDE SUBTRACT UNARY INCLUDE RETURN 
+%token <nd_obj> LBRACKET RBRACKET CHARACTER PRINTFF SCANFF INT FLOAT CHAR FOR IF ELSE TRUE FALSE NUMBER FLOAT_NUM ID LE GE EQ NE GT LT AND OR STR ADD MULTIPLY DIVIDE SUBTRACT UNARY INCLUDE RETURN 
 %type <nd_obj> headers main body return datatype statement arithmetic relop program else condition
 %type <nd_obj2> init value expression
 
@@ -78,6 +78,7 @@ datatype: INT { insert_type(); }
 | FLOAT { insert_type(); }
 | CHAR { insert_type(); }
 | VOID { insert_type(); }
+| datatype LBRACKET RBRACKET { strcat(type, "[]"); }
 ;
 
 body: FOR { add('K'); } '(' statement ';' condition ';' statement ')' '{' body '}' { 
@@ -112,6 +113,7 @@ statement: datatype ID { add('V'); } init {
 	$2.nd = mknode(NULL, NULL, $2.name); 
 	int t = check_types($1.name, $4.type); 
 	if(t>0) { 
+		
 		if(t == 1) {
 			struct node *temp = mknode(NULL, $4.nd, "floattoint"); 
 			$$.nd = mknode($2.nd, temp, "declaration"); 
@@ -194,6 +196,24 @@ statement: datatype ID { add('V'); } init {
 	$2.nd = mknode(NULL, NULL, $2.name); 
 	$$.nd = mknode($1.nd, $2.nd, "ITERATOR"); 
 }
+| datatype ID LBRACKET NUMBER RBRACKET { 
+                add('V'); 
+                sprintf(buff, "%s[%s]", $2.name, $4.name);
+                $$ = mknode(NULL, NULL, buff); 
+            } init {
+                $2.nd = mknode(NULL, NULL, $2.name); 
+                $$.nd = mknode($2.nd, $6.nd, "declaration");
+            }
+        | ID LBRACKET expression RBRACKET { 
+                check_declaration($1.name);
+                sprintf(buff, "%s[%s]", $1.name, $3.name);
+                $$ = mknode(NULL, NULL, buff); 
+            }
+        | ID LBRACKET expression RBRACKET '=' expression { 
+                check_declaration($1.name);
+                sprintf(buff, "%s[%s] = %s", $1.name, $3.name, $6.name);
+                $$ = mknode(NULL, NULL, buff); 
+            }
 ;
 
 init: '=' value { $$.nd = $2.nd; sprintf($$.type, $2.type); strcpy($$.name, $2.name); }
@@ -332,6 +352,15 @@ void check_return_type(char *value) {
 }
 
 int check_types(char *type1, char *type2){
+	if (strcmp(type1, type2) == 0) return 0;
+
+    if (strstr(type1, "[]") && strstr(type2, "[]")) {
+        char base_type1[10], base_type2[10];
+        sscanf(type1, "%[^[]", base_type1);
+        sscanf(type2, "%[^[]", base_type2);
+        return check_types(base_type1, base_type2); 
+    }
+	
 	if(!strcmp(type2, "null"))
 		return -1;
 	if(!strcmp(type1, type2))
@@ -446,14 +475,14 @@ void print_tree(struct node* tree) {
 }
 
 void print_inorder(struct node *tree) {
-	int i;
-	if (tree->left) {
-		print_inorder(tree->left);
-	}
-	printf("%s\t, ", tree->token);
-	if (tree->right) {
-		print_inorder(tree->right);
-	}
+    if (tree->left) print_inorder(tree->left);
+    if (tree->right) print_inorder(tree->right);
+    
+    if (strstr(tree->token, "[]")) {
+        printf("[VETOR] %s\n", tree->token);
+    } else {
+        printf("%s\n", tree->token);
+    }
 }
 
 void insert_type() {

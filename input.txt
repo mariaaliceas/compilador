@@ -14,7 +14,7 @@ declara_inteiro main ()
         laco_for (declara_inteiro k = 0; k < 10; k++)
         {
             y = x + 3;
-            mostra("Hello!");
+            mostra("SOMEBODY SAVE ME!");
         }
     }
     senao
@@ -23,11 +23,11 @@ declara_inteiro main ()
     }
     laco_for (declara_inteiro i = 0; i < 10; i++)
     {
-        mostra("Hello World!");
+        mostra("COMPILAS!");
         recebe("%d", &x);
         se (x > 5)
         {
-            mostra("Hi");
+            mostra("PRAY");
         }
         laco_for (declara_inteiro j = 0; j < z; j++)
         {
