@@ -34,5 +34,6 @@ declara_inteiro main ()
             a = 1;
         }
     }
+
     retorna 1;
 }

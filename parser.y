@@ -270,24 +270,24 @@ return: RETURN { add('K'); } value ';' { check_return_type($3.name); $1.nd = mkn
 int main() {
 	printf("\n\nLISTA DE TOKENS:\n\n");
 	if (yyparse() == 0) {
-        printf("Análise de tokens completada com sucesso!\n");
+        printf("Análise de tokens finalizada com sucesso!\n");
     }
-	printf("\n\nTABELA DE SIMBOLOS:\n\n");
-	printf("\nSIMBOLO   TIPO DE DADOS   TIPO   NUMERO DA LINHA \n");
-	printf("_______________________________________\n\n");
+	printf("Tabela de Símbolos:\n");
+    printf("+---------------------------+----------------+-------+\n");
+    printf("| Nome                     | Tipo            | Linha |\n");
+    printf("+--------------------------+-----------------+-------+\n");
 	int i=0;
 	for(i=0; i<count; i++) {
 		printf("%s\t\t%s\t%s\t%d\t\n", symbol_table[i].id_name, symbol_table[i].data_type, symbol_table[i].type, symbol_table[i].line_no);
 	}
+	
 	for(i=0;i<count;i++) {
 		free(symbol_table[i].id_name);
 		free(symbol_table[i].type);
 	}
 	printf("\n\n");
-	printf("\t\t\t\t\t\t\t\t PHASE 2: SYNTAX ANALYSIS \n\n");
 	print_tree(head); 
 	printf("\n\n\n\n");
-	printf("\t\t\t\t\t\t\t\t PHASE 3: SEMANTIC ANALYSIS \n\n");
 	if(sem_errors>0) {
 		printf("Análise semantica finalizada com %d errors\n", sem_errors);
 		for(int i=0; i<sem_errors; i++){
@@ -295,6 +295,7 @@ int main() {
 		}
 	} else {
 		printf("Análise semantica finalizada sem erros");
+		print_semantic_tree(head);
 	}
 	printf("\n\n");
 }
@@ -313,7 +314,7 @@ int search(char *type) {
 void check_declaration(char *c) {
     q = search(c);
     if(!q) {
-        sprintf(errors[sem_errors], "Line %d: Variable \"%s\" not declared before usage!\n", countn+1, c);
+        sprintf(errors[sem_errors], "Linha %d: Variável \"%s\" não foi declarada antes de seu uso!\n", countn+1, c);
 		sem_errors++;
     }
 }
@@ -361,7 +362,7 @@ void add(char c) {
 	if(c == 'V'){
 		for(int i=0; i<10; i++){
 			if(!strcmp(reserved[i], strdup(yytext))){
-        		sprintf(errors[sem_errors], "Line %d: Variable name \"%s\" is a reserved keyword!\n", countn+1, yytext);
+        		sprintf(errors[sem_errors], "LInha %d: A variável \"%s\" é uma palavra-chave!\n", countn+1, yytext);
 				sem_errors++;
 				return;
 			}
@@ -406,7 +407,7 @@ void add(char c) {
 		}
     }
     else if(c == 'V' && q) {
-        sprintf(errors[sem_errors], "Line %d: Multiple declarations of \"%s\" not allowed!\n", countn+1, yytext);
+        sprintf(errors[sem_errors], "Linha %d: Possui multiplas declarações \"%s\" e não é permitida!\n", countn+1, yytext);
 		sem_errors++;
     }
 }
@@ -419,6 +420,24 @@ struct node* mknode(struct node *left, struct node *right, char *token) {
 	newnode->right = right;
 	newnode->token = newstr;
 	return(newnode);
+}
+
+void print_semantic_inorder(struct node *tree) {
+    if (tree == NULL) return;
+
+    if (tree->left) {
+        print_semantic_inorder(tree->left);
+    }
+    printf("%s\t", tree->token);
+
+    if (tree->right) {
+        print_semantic_inorder(tree->right);
+    }
+}
+
+void print_semantic_tree(struct node* tree) {
+    printf("\n\nÁRVORE SEMÂNTICA: \n\n");
+    print_semantic_inorder(tree);
 }
 
 void print_tree(struct node* tree) {
