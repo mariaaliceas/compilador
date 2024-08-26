@@ -1,9 +1,9 @@
-PARA EXECUTAR:
+# **README File**
 
-yacc -v -d parser.y
+## **EXECUÇÃO**
 
-lex lexer.l
+Certifique-se que o projeto não contenha informações de execuções anteriores. Para isso, execute o seguinte comando: ./clear.sh
 
-gcc -ll y.tab.c
+Na sequência, execute o comando: ./run.sh
 
-./a.out<index.notphp
+
