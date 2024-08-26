@@ -11,13 +11,11 @@ typedef struct node {
     char *name;
     struct node *left;
     struct node *right;
-    struct node *next; // Para listas de argumentos, parâmetros, etc.
 } node;
 
 typedef struct symbol {
     char *name;            
     char *type;
-    char *scope;
     int line;         
 } symbol;
 
@@ -48,9 +46,9 @@ void print_tree(node *root, int level);
 
 %token <intval> INT
 %token <floatval> FLOAT
-%token <name> STR CHARACTER ID PRINTFF SCANFF RETURN FOR INCLUDE FUNCTION IF ELSE END
+%token <name> STR CHARACTER ID PRINTFF SCANFF RETURN FOR INCLUDE FUNCTION IF ELSE
 
-%type <node> else function_definition key_word program header body function_name parameter_definition statement declaration control_flow function_call expression assignment conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression array_position array_list array_arguments statement_list parameter_list
+%type <node> if_statement else function_definition key_word program header body function_name parameter_definition statement declaration control_flow function_call expression assignment conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression array_position array_list array_arguments statement_list parameter_list
 %type <name> type
 
 %left '+' '-'
@@ -70,21 +68,15 @@ header:
       {}
     | INCLUDE ID SEMICOLON {
             create($1, "KEYWORD", yylineno);
-            $$ = create_node(NULL, NULL, "INCLUDE"); 
+            $$ = create_node(NULL, NULL, "INCLUDE");
       }
     ;
 
 body:
-      {}
-    | function_definition body {
-      $$ = create_node($1, $2, "FUNC. DEF."); 
-    }
-    | statement body {
-      $$ = create_node($1, $2, "STATEMENT");
-    }
-    | END {
-      create($1, "KEYWORD", yylineno);
-      $$ = create_node(NULL, NULL, "END");
+    {}
+    | NEWLINE  { $$ = NULL; }
+    | statement_list {
+        $$ = create_node(NULL, $1, "STATEMENT");
     }
     ;
 
@@ -97,16 +89,34 @@ statement:
       | key_word expression SEMICOLON { 
             $$ = create_node($1, $2, "KEYWORD EXPRESSION");
       }
+      | function_definition {
+            $$ = create_node($1, NULL, "FUNCTION DEFINITION");
+      }
       ;
 
+
+statement_list:
+    statement {
+        $$ = $1;
+    }
+    | statement_list statement {
+        if ($1 == NULL) {
+            $$ = $2;
+        } else {
+            node *temp = $1;
+            while (temp->right != NULL) {
+                temp = temp->right;
+            }
+            temp->right = $2;
+            $$ = $1; 
+        }
+    }
+    ;
+
 expression:
-      assignment {
-            $$ = create_node($1, NULL, "ASSIGN"); 
-      }
-    | ID {
-        declared_rule($1);
-        $$ = create_node(NULL, NULL, $1); 
-      }
+    assignment {
+        $$ = create_node($1, NULL, "ASSIGN"); 
+    }
     | conditional_expression { $$ = $1; }
     | ID array_position {
         declared_rule($1);
@@ -138,8 +148,8 @@ expression:
 conditional_expression:
       logical_or_expression { $$ = $1; }
       | logical_or_expression '?' expression ':' expression {
-          $$ = create_node($1, NULL, "CONDITIONAL");
-          $$->left = create_node($3, $5, ":");
+          $$ = create_node($3, $5, "CONDITIONAL");
+          $$->left = create_node($1, NULL, ":");
       }
       ;
 
@@ -231,30 +241,11 @@ primary_expression:
       }
       ;
 
-
-
-statement_list:
-      statement {
-          $$ = $1; // Primeiro nó da lista
-      }
-      | statement_list statement {
-          if ($1 == NULL) {
-              $$ = $2; // Lista vazia, retorna o segundo statement
-          } else {
-              node *temp = $1;
-              while (temp->next != NULL) {
-                  temp = temp->next;
-              }
-              temp->next = $2; // Adiciona o novo statement ao final da lista
-              $$ = $1; 
-          }
-      }
-      ;
-
 assignment:
       ID ASSIGN expression {
             declared_rule($1);
             $$ = create_node(NULL, $3, "=");
+            $$->left = create_node(NULL, NULL, $1);
       }
       | ID ASSIGN array_list {
             declared_rule($1);
@@ -324,16 +315,12 @@ array_arguments:
       }
       | array_arguments COMMA INT {
         node* newNode = create_node(NULL, NULL, "");
-
-        if ($$ == NULL) {
-            $$ = newNode;
-        } else {
-            node* temp = $$;
-            while (temp->next != NULL) {
-                temp = temp->next;
-            }
-            temp->next = newNode; 
-        }
+          node *temp = $1;
+          while (temp->right != NULL) {
+              temp = temp->right;
+          }
+          temp->right = newNode;
+          $$ = $1; 
       }
       ;
 
@@ -362,32 +349,45 @@ type:
     | VOID    { $$ = strdup("VOID"); }
     ;
 
+if_statement:
+    IF LPAREN expression RPAREN {
+        create($1, "KEYWORD", yylineno);
+        $$ = create_node($3, NULL, "IF");
+    }
+
 control_flow:
-      IF LPAREN expression RPAREN LKEY statement_list RKEY{
-            create($1, "KEYWORD", yylineno);
-            $$ = create_node($3, $6, "IF"); 
+      if_statement LKEY statement_list RKEY{
+            $$ = create_node($1, $3, "IF"); 
       }
-      | IF LPAREN expression RPAREN LKEY statement_list RKEY else {
-            create($1, "KEYWORD", yylineno);
-            $$ = create_node($3, $6, "IF"); 
-            $$->next = $8; 
+      | if_statement LKEY statement_list RKEY else {
+            $$ = create_node($1, $3, "IF"); 
+            $$->right = $5; 
       }
       | FOR LPAREN expression SEMICOLON expression RPAREN LKEY statement_list RKEY {
             create($1, "KEYWORD", yylineno);
-            $$ = create_node($3, NULL, "FOR");
-            $$->next = create_node($5, NULL, ";");
-            $$->next->next = create_node($8, NULL, ";");
+            create($1, "KEYWORD", yylineno);
+            $$ = create_node($3, $8, "FOR");
+            $$->left = create_node($5, NULL, ";");
       }
       ;
 
+else_word:
+    ELSE {
+      create($1, "KEYWORD", yylineno);
+    }
+    | NEWLINE ELSE {
+      create($2, "KEYWORD", yylineno);
+    }
+    ;
+
 else:
-      ELSE LKEY statement_list RKEY {
-        $$ = create_node($3, NULL, "ELSE"); 
-      }
-      | NEWLINE ELSE LKEY statement_list RKEY {
-        $$ = create_node($4, NULL, "ELSE"); 
-      }
-      ;
+    else_word LKEY statement_list RKEY {
+      $$ = create_node($3, NULL, "ELSE"); 
+    }
+    | NEWLINE else_word LKEY statement_list RKEY {
+      $$ = create_node($4, NULL, "ELSE"); 
+    }
+    ;
 
 function_call:
       ID LPAREN parameter_list RPAREN SEMICOLON {
@@ -397,14 +397,16 @@ function_call:
 
 
 parameter_list:
-      {}
+      {
+            $$ = NULL;
+      }
       | ID {
             declared_rule($1);
             $$ = create_node(NULL, NULL, $1); 
       }
       | ID COMMA parameter_list{
             declared_rule($1);
-            $$ = create_node(NULL, $3, $1);
+            $$ = create_node($3, NULL, $1);
       }
       ;
 
@@ -437,7 +439,6 @@ struct node* create_node(struct node *left, struct node *right, char *name) {
     new_node->name = strdup(name);
     new_node->left = left;
     new_node->right = right;
-    new_node->next = NULL;
 
     return new_node;
 }
@@ -469,14 +470,12 @@ symbol *create(char *name, char *type, int line) {
 
     newSymbol->name = strdup(name);
     newSymbol->type = strdup(type);
-    newSymbol->scope = strdup("global");
     newSymbol->line = line;
     
-    if (newSymbol->name == NULL || newSymbol->type == NULL || newSymbol->scope == NULL) {
+    if (newSymbol->name == NULL || newSymbol->type == NULL) {
         perror("Erro ao alocar memória para campos do símbolo");
         free(newSymbol->name);
         free(newSymbol->type);
-        free(newSymbol->scope);
         free(newSymbol);
         return NULL;
     }
@@ -513,12 +512,15 @@ void print_tree(node *root, int level) {
     if (root == NULL) {
         return;
     }
-    for (int i = 0; i < level; i++) {
-        printf("  ");
-    }
-    printf("%s\n", root->name);
 
-    print_tree(root->next, level);
-    print_tree(root->left, level + 1);
-    print_tree(root->right, level + 1);
+    printf("%*s%s (%s)\n", level * 2, "", root->name, 
+           root->left ? "left" : (root->right ? "right" : "leaf")); 
+
+    if (root->left) {
+        print_tree(root->left, level + 1);
+    }
+
+    if (root->right) {
+        print_tree(root->right, level + 1);
+    }
 }

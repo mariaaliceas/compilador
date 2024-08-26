@@ -25,7 +25,6 @@ number {digit}+(\.{digit}+)?
 "verdadeiro"            { yylval.name = strdup(yytext); return TRUE; }
 "falso"                 { yylval.name = strdup(yytext); return FALSE; }
 "recebe"                { yylval.name = strdup(yytext); return ASSIGN; }
-"fim"                   { yylval.name = strdup(yytext); return END; }
 "("                     { yylval.name = strdup(yytext); return LPAREN; }
 ")"                     { yylval.name = strdup(yytext); return RPAREN; }
 "{"                     { yylval.name = strdup(yytext); return LKEY; }
