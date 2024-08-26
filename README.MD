@@ -10,11 +10,13 @@ Antes de rodar o compilador, certifique-se de que o projeto não contenha inform
 
 ```bash
 ./clear.sh
+```
 
 ### Passo 2: Compilação e Execução
 
 ```bash
 ./run.sh
+```
 
 ### **Notas**
 
