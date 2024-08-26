@@ -1,16 +1,23 @@
-## **README**
+# **Projeto de Compilador - NotPHP**
 
-### **EXECUÇÃO**
+Este projeto implementa um compilador simples para uma linguagem fictícia chamada NotPHP, utilizando Flex para a construção do lexer e Bison para a construção do parser. A seguir, estão as instruções para execução do projeto.
 
-Certifique-se que o projeto não contenha informações de execuções anteriores. Para isso, execute o seguinte comando: ./clear.sh
+## **Execução**
 
-Na sequência, execute o comando: ./run.sh
+### Passo 1: Limpeza de Execuções Anteriores
 
-Este executa automaticamente os seguintes arquivos e comandos: 
+Antes de rodar o compilador, certifique-se de que o projeto não contenha informações de execuções anteriores. Para isso, execute o seguinte comando:
 
--flex lexer.l
--bison -d parser.y
--gcc -o notphp lex.yy.c parser.tab.c -lfl
--./notphp < teste.txt
+```bash
+./clear.sh
 
+### Passo 2: Compilação e Execução
 
+```bash
+./run.sh
+
+### **Notas**
+
+- **lexer.l:** Contém as regras de análise lexical.
+- **parser.y:** Contém as regras de análise sintática e semântica.
+- **teste.txt:** Arquivo de teste que contém o código a ser analisado.
