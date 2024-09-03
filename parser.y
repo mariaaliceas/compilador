@@ -11,31 +11,35 @@ typedef struct node {
     char *name;
     struct node *left;
     struct node *right;
+    char *type;
 } node;
 
 typedef struct symbol {
     char *name;            
     char *type;
-    int line;         
+    int line;
 } symbol;
 
 symbol *symbolTable[30];
 int count = 0;
 node* root;
 
-node* create_node(struct node *left, struct node *right, char *name);
+node* create_node(struct node *left, struct node *right, char *name, char* type);
 symbol *create(char *name, char *type, int line);
 
 int declared_rule(char *name);
 void add_child(node *parent, node *child);
 void print_table();
 void print_tree(node *root, int level);
+char* get_type(node* node);
+void check_assignment_type(char *id, node* left, node* right);
 
 %}
 
 %union {
     int intval;
     float floatval;
+    char strval;
     char *name;
     struct node *node;
 }
@@ -44,9 +48,10 @@ void print_tree(node *root, int level);
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
 %token LPAREN RPAREN COMMA NEWLINE ASSIGN LKEY RKEY RBRACKET LBRACKET SEMICOLON
 
-%token <intval> INT
-%token <floatval> FLOAT
-%token <name> STR CHARACTER ID PRINTFF SCANFF RETURN FOR INCLUDE FUNCTION IF ELSE
+%token <intval> INTVAL
+%token <floatval> FLOATVAL
+%token <strval> STRVAL
+%token <name> INT FLOAT ID PRINTFF SCANFF RETURN FOR INCLUDE FUNCTION IF ELSE
 
 %type <node> if_statement else function_definition key_word program header body function_name parameter_definition statement declaration control_flow function_call expression assignment conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression array_position array_list array_arguments statement_list parameter_list
 %type <name> type
@@ -59,7 +64,7 @@ void print_tree(node *root, int level);
 %%
 program:
     header body {
-      $$ = create_node($1, $2, "PROGRAM");
+      $$ = create_node($1, $2, "PROGRAM", "");
       root = $$;
     }
     ;
@@ -68,7 +73,7 @@ header:
       {}
     | INCLUDE ID SEMICOLON {
             create($1, "KEYWORD", yylineno);
-            $$ = create_node(NULL, NULL, "INCLUDE");
+            $$ = create_node(NULL, NULL, "INCLUDE", "");
       }
     ;
 
@@ -76,7 +81,7 @@ body:
     {}
     | NEWLINE  { $$ = NULL; }
     | statement_list {
-        $$ = create_node(NULL, $1, "STATEMENT");
+        $$ = create_node(NULL, $1, "STATEMENT", "");
     }
     ;
 
@@ -87,10 +92,10 @@ statement:
       | control_flow { $$ = $1; }
       | function_call { $$ = $1; }
       | key_word expression SEMICOLON { 
-            $$ = create_node($1, $2, "KEYWORD EXPRESSION");
+            $$ = create_node($1, $2, "KEYWORD EXPRESSION", "");
       }
       | function_definition {
-            $$ = create_node($1, NULL, "FUNCTION DEFINITION");
+            $$ = create_node($1, NULL, "FUNCTION DEFINITION", "");
       }
       ;
 
@@ -115,161 +120,172 @@ statement_list:
 
 expression:
     assignment {
-        $$ = create_node($1, NULL, "ASSIGN"); 
+        $$ = create_node($1, NULL, "ASSIGN", $1->type); 
     }
     | conditional_expression { $$ = $1; }
     | ID array_position {
         declared_rule($1);
-        $$ = create_node($2, NULL, "ARRAY ACCESS");
-        $$->left = create_node(NULL, NULL, $1);
+        $$ = create_node($2, NULL, "ARRAY ACCESS", "");
+        $$->type = strdup(symbolTable[declared_rule($1)-1]->type); // Define o tipo do acesso ao array
+        $$->left = create_node(NULL, NULL, $1, $$->type);
       }
     | ID ADD expression {
         declared_rule($1);
-        $$ = create_node(NULL, $3, "+");
-        $$->left = create_node(NULL, NULL, $1); 
+        $$ = create_node(NULL, $3, "+", ""); 
+        $$->left = create_node(NULL, NULL, $1, "");
+        $$->type = get_type($$); // Define o tipo da expressão
       }
     | ID SUBTRACT expression {
         declared_rule($1);
-        $$ = create_node(NULL, $3, "-");
-        $$->left = create_node(NULL, NULL, $1); 
+        $$ = create_node(NULL, $3, "-", ""); 
+        $$->left = create_node(NULL, NULL, $1, ""); 
+        $$->type = get_type($$);
       }
     | ID MULTIPLY expression {
         declared_rule($1);
-        $$ = create_node(NULL, $3, "*");
-        $$->left = create_node(NULL, NULL, $1);
+        $$ = create_node(NULL, $3, "*", ""); 
+        $$->left = create_node(NULL, NULL, $1, ""); 
+        $$->type = get_type($$);
       }
     | ID DIVIDE expression {
         declared_rule($1);
-        $$ = create_node(NULL, $3, "/");
-        $$->left = create_node(NULL, NULL, $1);
+        $$ = create_node(NULL, $3, "/", ""); 
+        $$->left = create_node(NULL, NULL, $1, ""); 
+        $$->type = get_type($$);
       }
     ;
 
 conditional_expression:
       logical_or_expression { $$ = $1; }
       | logical_or_expression '?' expression ':' expression {
-          $$ = create_node($3, $5, "CONDITIONAL");
-          $$->left = create_node($1, NULL, ":");
+          $$ = create_node($3, $5, "CONDITIONAL", "");
+          $$->left = create_node($1, NULL, ":", "");
       }
       ;
 
 logical_or_expression:
       logical_and_expression { $$ = $1; }
       | logical_or_expression OR logical_and_expression {
-          $$ = create_node($1, $3, "OR");
+          $$ = create_node($1, $3, "OR", "");
       }
       ;
 
 logical_and_expression:
       equality_expression { $$ = $1; }
       | equality_expression AND logical_and_expression {
-          $$ = create_node($1, $3, "AND");
+          $$ = create_node($1, $3, "AND", "");
       }
       ;
 
 equality_expression:
       relational_expression { $$ = $1; }
       | relational_expression EQ relational_expression {
-          $$ = create_node($1, $3, "EQ");
+          $$ = create_node($1, $3, "EQ", "");
       }
       | relational_expression NE relational_expression {
-          $$ = create_node($1, $3, "NE");
+          $$ = create_node($1, $3, "NE", "");
       }
       ;
 
 relational_expression:
       additive_expression { $$ = $1; }
       | additive_expression LE additive_expression {
-          $$ = create_node($1, $3, "LE");
+          $$ = create_node($1, $3, "LE", "");
       }
       | additive_expression GE additive_expression {
-          $$ = create_node($1, $3, "GE");
+          $$ = create_node($1, $3, "GE", "");
       }
       | additive_expression LT additive_expression {
-          $$ = create_node($1, $3, "LT");
+          $$ = create_node($1, $3, "LT", "");
       }
       | additive_expression GT additive_expression {
-          $$ = create_node($1, $3, "GT");
+          $$ = create_node($1, $3, "GT", "");
       }
       ;
 
 additive_expression:
       multiplicative_expression { $$ = $1; }
       | additive_expression ADD multiplicative_expression {
-          $$ = create_node($1, $3, "+");
+          $$ = create_node($1, $3, "+", "");
+          $$->type = get_type($$); // Define o tipo da expressão
       }
       | additive_expression SUBTRACT multiplicative_expression {
-          $$ = create_node($1, $3, "-");
+          $$ = create_node($1, $3, "-", "");
+          $$->type = get_type($$); // Define o tipo da expressão
       }
       ;
 
 multiplicative_expression:
       unary_expression { $$ = $1; }
       | multiplicative_expression MULTIPLY unary_expression {
-          $$ = create_node($1, $3, "*");
+          $$ = create_node($1, $3, "*", "");
+          $$->type = get_type($$); // Define o tipo da expressão
       }
       | multiplicative_expression DIVIDE unary_expression {
-          $$ = create_node($1, $3, "/");
+          $$ = create_node($1, $3, "/", "");
+          $$->type = get_type($$); // Define o tipo da expressão
       }
       ;
 
 unary_expression:
-      primary_expression { $$ = $1; }
+      primary_expression { 
+        $$ = $1;
+       }
       | SUBTRACT unary_expression %prec UNARY {
-          $$ = create_node(NULL, $2, "-");
+        $$ = create_node(NULL, $2, "-", "");
+        $$->type = get_type($$); // Define o tipo da expressão
       }
       ;
 
 primary_expression:
-      INT { 
-          $$ = create_node(NULL, NULL, ""); 
+      INTVAL {
+        $$ = create_node(NULL, NULL, "", "INT"); 
       }
-      | FLOAT { 
-          $$ = create_node(NULL, NULL, "");
+      | FLOATVAL {
+        $$ = create_node(NULL, NULL, "", "FLOAT"); 
       }
-      | STR { 
-          $$ = create_node(NULL, NULL, $1);
-      }
-      | CHARACTER { 
-          $$ = create_node(NULL, NULL, ""); 
+      | STRVAL {
+        $$ = create_node(NULL, NULL, "", "CHAR");
       }
       | LPAREN expression RPAREN { $$ = $2; }
       | function_call { $$ = $1; }
       | ID { 
           declared_rule($1);
-          $$ = create_node(NULL, NULL, $1); 
+          $$ = create_node(NULL, NULL, $1, ""); 
+          $$->type = strdup(symbolTable[declared_rule($1)-1]->type);
       }
       ;
 
 assignment:
-      ID ASSIGN expression {
-            declared_rule($1);
-            $$ = create_node(NULL, $3, "=");
-            $$->left = create_node(NULL, NULL, $1);
+    ID ASSIGN expression {
+        declared_rule($1);
+        $$ = create_node(NULL, $3, "=", $3->type);
+        $$->left = create_node(NULL, NULL, $1, $3->type);
+        check_assignment_type($1, $$, $3);
       }
       | ID ASSIGN array_list {
-            declared_rule($1);
-            $$ = create_node($3, NULL, "="); 
-            $$->left = create_node(NULL, NULL, $1);
+        declared_rule($1);
+        $$ = create_node($3, NULL, "=", "");
+        $$->left = create_node(NULL, NULL, $1, "");
       }
       | ID array_position ASSIGN expression {
-            declared_rule($1);
-            $$ = create_node($4, NULL, "=");
-            $$->left = create_node($2, NULL, "ARRAY ACCESS");
-            $$->left->left = create_node(NULL, NULL, $1); 
+        declared_rule($1);
+        $$ = create_node($4, NULL, "=", "");
+        $$->left = create_node($2, NULL, "ARRAY ACCESS", "");
+        $$->left->left = create_node(NULL, NULL, $1, ""); 
       }
       ;
 
 function_definition:
       function_name LKEY statement_list RKEY {
-            $$ = create_node($3, NULL, $1->name);
+            $$ = create_node($3, NULL, $1->name, "");
       }
       ;
 
 function_name:
       FUNCTION ID LPAREN parameter_definition RPAREN  {
             create($2, "FUNCTION", yylineno);
-            $$ = create_node($4, NULL, $2);
+            $$ = create_node($4, NULL, $2, "");
       }
       ;
 
@@ -277,29 +293,29 @@ parameter_definition:
       {}
       | type ID {
             create($2, $1, yylineno);
-            $$ = create_node(NULL, NULL, $2); 
+            $$ = create_node(NULL, NULL, $2, $1); 
       }
       | type ID COMMA parameter_definition {
             create($2, $1, yylineno);
-            $$ = create_node($4, NULL, $2);
+            $$ = create_node($4, NULL, $2, $1);
       }
       ;
 
 key_word:
       PRINTFF {
-            $$ = create_node(NULL, NULL, $1);
+            $$ = create_node(NULL, NULL, $1, "");
       }
       | SCANFF {
-            $$ = create_node(NULL, NULL, $1);
+            $$ = create_node(NULL, NULL, $1, "");
       }
       | RETURN {
-            $$ = create_node(NULL, NULL, $1);
+            $$ = create_node(NULL, NULL, $1, "");
       }
       ;
 
 array_position:
       LBRACKET expression RBRACKET {
-        $$ = create_node($2, NULL, "[]"); 
+        $$ = create_node($2, NULL, "[]", ""); 
       }
       ;
 
@@ -310,11 +326,11 @@ array_list:
       ;
 
 array_arguments:
-      INT {
-        $$ = create_node(NULL, NULL, "");
+      INTVAL {
+        $$ = create_node(NULL, NULL, "", "INT");
       }
-      | array_arguments COMMA INT {
-        node* newNode = create_node(NULL, NULL, "");
+      | array_arguments COMMA INTVAL {
+        node* newNode = create_node(NULL, NULL, "", "INT");
           node *temp = $1;
           while (temp->right != NULL) {
               temp = temp->right;
@@ -327,17 +343,18 @@ array_arguments:
 declaration:
       type ID SEMICOLON {
           create($2, $1, yylineno);
-          $$ = create_node(NULL, NULL, $2); 
+          $$ = create_node(NULL, NULL, $2, $1); 
       }
     | type ID ASSIGN expression SEMICOLON {
           create($2, $1, yylineno);
-          $$ = create_node($4, NULL, "="); 
-          $$->left = create_node(NULL, NULL, $2); 
+          $$ = create_node($4, NULL, "=", $1); 
+          $$->left = create_node(NULL, NULL, $2, $1); 
+          check_assignment_type($2, $$, $4);
       }
     | type ID array_position SEMICOLON {
           create($2, $1, yylineno);
-          $$ = create_node($3, NULL, "ARRAY DECLARATION");
-          $$->left = create_node(NULL, NULL, $2);
+          $$ = create_node($3, NULL, "ARRAY DECLARATION", $1);
+          $$->left = create_node(NULL, NULL, $2, $1);
       }
     ;
 
@@ -345,29 +362,28 @@ type:
       INT     { $$ = strdup("INT"); }
     | FLOAT   { $$ = strdup("FLOAT"); }
     | CHAR    { $$ = strdup("CHAR"); }
-    | STR     { $$ = strdup("STR"); }
     | VOID    { $$ = strdup("VOID"); }
     ;
 
 if_statement:
     IF LPAREN expression RPAREN {
         create($1, "KEYWORD", yylineno);
-        $$ = create_node($3, NULL, "IF");
+        $$ = create_node($3, NULL, "IF", "");
     }
 
 control_flow:
       if_statement LKEY statement_list RKEY{
-            $$ = create_node($1, $3, "IF"); 
+            $$ = create_node($1, $3, "IF", ""); 
       }
       | if_statement LKEY statement_list RKEY else {
-            $$ = create_node($1, $3, "IF"); 
+            $$ = create_node($1, $3, "IF", ""); 
             $$->right = $5; 
       }
       | FOR LPAREN expression SEMICOLON expression RPAREN LKEY statement_list RKEY {
             create($1, "KEYWORD", yylineno);
             create($1, "KEYWORD", yylineno);
-            $$ = create_node($3, $8, "FOR");
-            $$->left = create_node($5, NULL, ";");
+            $$ = create_node($3, $8, "FOR", "");
+            $$->left = create_node($5, NULL, ";", "");
       }
       ;
 
@@ -382,16 +398,16 @@ else_word:
 
 else:
     else_word LKEY statement_list RKEY {
-      $$ = create_node($3, NULL, "ELSE"); 
+      $$ = create_node($3, NULL, "ELSE", ""); 
     }
     | NEWLINE else_word LKEY statement_list RKEY {
-      $$ = create_node($4, NULL, "ELSE"); 
+      $$ = create_node($4, NULL, "ELSE", ""); 
     }
     ;
 
 function_call:
       ID LPAREN parameter_list RPAREN SEMICOLON {
-            $$ = create_node($3, NULL, $1);
+            $$ = create_node($3, NULL, $1, "");
       }
       ;
 
@@ -402,11 +418,11 @@ parameter_list:
       }
       | ID {
             declared_rule($1);
-            $$ = create_node(NULL, NULL, $1); 
+            $$ = create_node(NULL, NULL, $1, ""); 
       }
       | ID COMMA parameter_list{
             declared_rule($1);
-            $$ = create_node($3, NULL, $1);
+            $$ = create_node($3, NULL, $1, "");
       }
       ;
 
@@ -423,12 +439,12 @@ int main(int argc, char **argv) {
     if (yyparse() == 0) {
         printf("Parsing completed successfully!\n");
         print_table();
-        print_tree(root, 0);
+       // print_tree(root, 0);
     }
     return 0;
 }
 
-struct node* create_node(struct node *left, struct node *right, char *name) {
+struct node* create_node(struct node *left, struct node *right, char *name, char* type) {
     struct node *new_node = (node *)malloc(sizeof(node));
 
     if (!new_node) {
@@ -439,6 +455,7 @@ struct node* create_node(struct node *left, struct node *right, char *name) {
     new_node->name = strdup(name);
     new_node->left = left;
     new_node->right = right;
+    new_node->type = type ? strdup(type) : NULL;
 
     return new_node;
 }
@@ -488,7 +505,7 @@ symbol *create(char *name, char *type, int line) {
 int declared_rule(char *name) {
     for (int i = 0; i < count; i++) {
         if (strcmp(symbolTable[i]->name, name) == 0) {
-            return 1;
+            return i+1;
         }
     }
     printf("Erro: Variável %s não declarada na linha %d\n", name, yylineno);
@@ -513,8 +530,8 @@ void print_tree(node *root, int level) {
         return;
     }
 
-    printf("%*s%s (%s)\n", level * 2, "", root->name, 
-           root->left ? "left" : (root->right ? "right" : "leaf")); 
+    printf("%*s%s (%s) - %s\n", level * 2, "", root->name, 
+           root->left ? "left" : (root->right ? "right" : "leaf"), root->type ? root->type : "NULL"); 
 
     if (root->left) {
         print_tree(root->left, level + 1);
@@ -523,4 +540,40 @@ void print_tree(node *root, int level) {
     if (root->right) {
         print_tree(root->right, level + 1);
     }
+}
+
+char* get_type(node* node) {
+  if (node->left && strcmp(node->left->type, "FLOAT") == 0) return "FLOAT";
+  if (node->right && strcmp(node->right->type, "FLOAT") == 0) return "FLOAT";
+
+  if (node->left && node->right && 
+      strcmp(node->left->type, "INT") == 0 && strcmp(node->right->type, "INT") == 0) {
+    return "INT";
+  }
+
+  return "UNKNOWN";
+}
+
+void check_assignment_type(char *id, node* left, node* right) {
+  char *leftType = left->type;
+  char *rightType = right->type;
+
+  for (int i = 0; i < count; i++) {
+    if (strcmp(symbolTable[i]->name, id) == 0) {
+      leftType = symbolTable[i]->type;
+      break;
+    }
+  }
+
+  if (strcmp(leftType, "UNKNOWN") == 0 || strcmp(rightType, "UNKNOWN") == 0) {
+    if (strcmp(leftType, "UNKNOWN") == 0 && strcmp(rightType, "UNKNOWN") == 0) {
+      return;
+    }
+  } else {
+    if (strcmp(leftType, rightType) != 0) {
+      printf("Erro de tipo: tentativa de atribuir '%s' a '%s' na linha %d\n",
+             rightType, leftType, yylineno);
+      exit(1);
+    }
+  }
 }

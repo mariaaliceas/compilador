@@ -25,32 +25,31 @@ number {digit}+(\.{digit}+)?
 "verdadeiro"            { printf("TOKEN: TRUE, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return TRUE; }
 "falso"                 { printf("TOKEN: FALSE, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return FALSE; }
 "recebe"                { printf("TOKEN: ASSIGN, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return ASSIGN; }
-"("                     { printf("TOKEN: LPAREN, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return LPAREN; }
-")"                     { printf("TOKEN: RPAREN, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return RPAREN; }
-"{"                     { printf("TOKEN: LKEY, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return LKEY; }
-"}"                     { printf("TOKEN: RKEY, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return RKEY; }
-"["                     { printf("TOKEN: LBRACKET, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return LBRACKET; }
-"]"                     { printf("TOKEN: RBRACKET, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return RBRACKET; }
-","                     { printf("TOKEN: COMMA, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return COMMA; }
-\n                      { printf("TOKEN: NEWLINE, VALUE: \\n\n"); yylineno++; return NEWLINE; }
-\"[^\"]*\"              { printf("TOKEN: STR, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return STR; }
-"\'[^\']\'"             { printf("TOKEN: CHARACTER, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return CHARACTER; }
+"("                     { yylval.name = strdup(yytext); return LPAREN; }
+")"                     { yylval.name = strdup(yytext); return RPAREN; }
+"{"                     { yylval.name = strdup(yytext); return LKEY; }
+"}"                     { yylval.name = strdup(yytext); return RKEY; }
+"["                     { yylval.name = strdup(yytext); return LBRACKET; }
+"]"                     { yylval.name = strdup(yytext); return RBRACKET; }
+","                     { yylval.name = strdup(yytext); return COMMA; }
+\n                      {  yylineno++; return NEWLINE; }
+\"[^\"]*\"              { printf("TOKEN: STRVAL, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return STRVAL; }
 [a-zA-Z_][a-zA-Z0-9_]*  { printf("TOKEN: ID, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return ID; }
-"<="                    { printf("TOKEN: LE, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return LE; }
-">="                    { printf("TOKEN: GE, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return GE; }
-"=="                    { printf("TOKEN: EQ, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return EQ; }
-"!="                    { printf("TOKEN: NE, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return NE; }
-">"                     { printf("TOKEN: GT, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return GT; }
-"<"                     { printf("TOKEN: LT, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return LT; }
-"&&"                    { printf("TOKEN: AND, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return AND; }
-"||"                    { printf("TOKEN: OR, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return OR; }
-"+"                     { printf("TOKEN: ADD, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return ADD; }
-"-"                     { printf("TOKEN: SUBTRACT, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return SUBTRACT; }
-"/"                     { printf("TOKEN: DIVIDE, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return DIVIDE; }
-"*"                     { printf("TOKEN: MULTIPLY, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return MULTIPLY; }
-";"                     { printf("TOKEN: SEMICOLON, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return SEMICOLON; }
+"<="                    { yylval.name = strdup(yytext); return LE; }
+">="                    { yylval.name = strdup(yytext); return GE; }
+"=="                    { yylval.name = strdup(yytext); return EQ; }
+"!="                    { yylval.name = strdup(yytext); return NE; }
+">"                     { yylval.name = strdup(yytext); return GT; }
+"<"                     { yylval.name = strdup(yytext); return LT; }
+"&&"                    { yylval.name = strdup(yytext); return AND; }
+"||"                    { yylval.name = strdup(yytext); return OR; }
+"+"                     { yylval.name = strdup(yytext); return ADD; }
+"-"                     { yylval.name = strdup(yytext); return SUBTRACT; }
+"/"                     { yylval.name = strdup(yytext); return DIVIDE; }
+"*"                     { yylval.name = strdup(yytext); return MULTIPLY; }
+";"                     { yylval.name = strdup(yytext); return SEMICOLON; }
 [ \t]+                  { }
-{number}                { printf("TOKEN: %s, VALUE: %s\n", strchr(yytext, '.') ? "FLOAT" : "INT", yytext); yylval.name = strdup(yytext); return (strchr(yytext, '.') ? FLOAT : INT); }
+{number}                { printf("TOKEN: %s, VALUE: %s\n", strchr(yytext, '.') ? "FLOATVAL" : "INTVAL", yytext); yylval.name = strdup(yytext); return (strchr(yytext, '.') ? FLOATVAL : INTVAL); }
 {unary}                 { printf("TOKEN: UNARY, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return UNARY; }
 
 %%
