@@ -33,6 +33,8 @@ void print_table();
 void print_tree(node *root, int level);
 char* get_type(node* node);
 void check_assignment_type(char *id, node* left, node* right);
+void check_expression_type(char *id, node* node);
+char* get_type_symbol(char *name);
 
 %}
 
@@ -133,7 +135,8 @@ expression:
         declared_rule($1);
         $$ = create_node(NULL, $3, "+", ""); 
         $$->left = create_node(NULL, NULL, $1, "");
-        $$->type = get_type($$); // Define o tipo da expressão
+        $$->type = get_type_symbol($1);
+        check_expression_type($1, $3);
       }
     | ID SUBTRACT expression {
         declared_rule($1);
@@ -206,11 +209,11 @@ relational_expression:
 additive_expression:
       multiplicative_expression { $$ = $1; }
       | additive_expression ADD multiplicative_expression {
-          $$ = create_node($1, $3, "+", "");
+          $$ = create_node($1, $3, "+", $1->type);
           $$->type = get_type($$); // Define o tipo da expressão
       }
       | additive_expression SUBTRACT multiplicative_expression {
-          $$ = create_node($1, $3, "-", "");
+          $$ = create_node($1, $3, "-", $1->type);
           $$->type = get_type($$); // Define o tipo da expressão
       }
       ;
@@ -218,11 +221,11 @@ additive_expression:
 multiplicative_expression:
       unary_expression { $$ = $1; }
       | multiplicative_expression MULTIPLY unary_expression {
-          $$ = create_node($1, $3, "*", "");
+          $$ = create_node($1, $3, "*", $1->type);
           $$->type = get_type($$); // Define o tipo da expressão
       }
       | multiplicative_expression DIVIDE unary_expression {
-          $$ = create_node($1, $3, "/", "");
+          $$ = create_node($1, $3, "/", $1->type);
           $$->type = get_type($$); // Define o tipo da expressão
       }
       ;
@@ -261,6 +264,7 @@ assignment:
         declared_rule($1);
         $$ = create_node(NULL, $3, "=", $3->type);
         $$->left = create_node(NULL, NULL, $1, $3->type);
+        check_expression_type($1, $3);
         check_assignment_type($1, $$, $3);
       }
       | ID ASSIGN array_list {
@@ -542,16 +546,50 @@ void print_tree(node *root, int level) {
     }
 }
 
+char* get_type_symbol(char *name) {
+    for (int i = 0; i < count; i++) {
+        if (strcmp(symbolTable[i]->name, name) == 0) {
+            return symbolTable[i]->type;
+        }
+    }
+    return "UNKNOWN";
+}
+
 char* get_type(node* node) {
   if (node->left && strcmp(node->left->type, "FLOAT") == 0) return "FLOAT";
   if (node->right && strcmp(node->right->type, "FLOAT") == 0) return "FLOAT";
 
-  if (node->left && node->right && 
-      strcmp(node->left->type, "INT") == 0 && strcmp(node->right->type, "INT") == 0) {
+  if (node->left && node->right && strcmp(node->left->type, "INT") == 0 && strcmp(node->right->type, "INT") == 0) {
     return "INT";
   }
 
   return "UNKNOWN";
+}
+
+void check_expression_type(char *id, node* node) {
+  char *nodeType = node->type;
+  char *typeid;
+
+  for (int i = 0; i < count; i++) {
+    if (strcmp(symbolTable[i]->name, id) == 0) {
+      typeid = symbolTable[i]->type;
+      break;
+    }
+  }
+  printf("ID: %s\n", id);
+  printf("TYPE: %s\n", typeid);
+  printf("NODE TYPE: %s\n", nodeType);
+  printf("NODE CHAR: %s\n", node->name);
+  
+  if (strcmp(nodeType, "UNKNOWN") == 0) {
+    return;
+  } else {
+    if (strcmp(nodeType, "INT") != 0 && strcmp(nodeType, "FLOAT") != 0) {
+      printf("Erro de tipo: tentativa de somar '%s' com '%s' na linha %d\n",
+             nodeType, typeid, yylineno);
+      exit(1);
+    }
+  }
 }
 
 void check_assignment_type(char *id, node* left, node* right) {
@@ -566,9 +604,7 @@ void check_assignment_type(char *id, node* left, node* right) {
   }
 
   if (strcmp(leftType, "UNKNOWN") == 0 || strcmp(rightType, "UNKNOWN") == 0) {
-    if (strcmp(leftType, "UNKNOWN") == 0 && strcmp(rightType, "UNKNOWN") == 0) {
-      return;
-    }
+    return;
   } else {
     if (strcmp(leftType, rightType) != 0) {
       printf("Erro de tipo: tentativa de atribuir '%s' a '%s' na linha %d\n",
