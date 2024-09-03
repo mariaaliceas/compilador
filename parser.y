@@ -9,14 +9,15 @@ void yyerror(const char *s);
 
 typedef struct node {
     char *name;
+    char *type;
     struct node *left;
     struct node *right;
 } node;
 
 typedef struct symbol {
-    char *name;            
+    char *name;
     char *type;
-    int line;         
+    int line;
 } symbol;
 
 symbol *symbolTable[30];
@@ -27,6 +28,7 @@ node* create_node(struct node *left, struct node *right, char *name);
 symbol *create(char *name, char *type, int line);
 
 int declared_rule(char *name);
+int check_type(char *type, node *expression);
 void add_child(node *parent, node *child);
 void print_table();
 void print_tree(node *root, int level);
@@ -36,19 +38,21 @@ void print_tree(node *root, int level);
 %union {
     int intval;
     float floatval;
+    char *stringval;
     char *name;
     struct node *node;
 }
 
-%token CHAR VOID TRUE FALSE
+%token VOID TRUE FALSE INT FLOAT
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
 %token LPAREN RPAREN COMMA NEWLINE ASSIGN LKEY RKEY RBRACKET LBRACKET SEMICOLON
 
-%token <intval> INT
-%token <floatval> FLOAT
-%token <name> STR CHARACTER ID PRINTFF SCANFF RETURN FOR INCLUDE FUNCTION IF ELSE
+%token <intval> INTVAL
+%token <floatval> FLOATVAL
+%token <stringval> STRINGVAL
+%token <name> ID PRINTFF SCANFF RETURN FOR INCLUDE FUNCTION IF ELSE STRING
 
-%type <node> if_statement else function_definition key_word program header body function_name parameter_definition statement declaration control_flow function_call expression assignment conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression array_position array_list array_arguments statement_list parameter_list
+%type <node> value if_statement else function_definition key_word program header body function_name parameter_definition statement declaration control_flow function_call expression assignment conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression array_position array_list array_arguments statement_list parameter_list
 %type <name> type
 
 %left '+' '-'
@@ -115,7 +119,7 @@ statement_list:
 
 expression:
     assignment {
-        $$ = create_node($1, NULL, "ASSIGN"); 
+        $$ = create_node($1, NULL, "ASSIGN");
     }
     | conditional_expression { $$ = $1; }
     | ID array_position {
@@ -227,11 +231,8 @@ primary_expression:
       | FLOAT { 
           $$ = create_node(NULL, NULL, "");
       }
-      | STR { 
+      | STRING { 
           $$ = create_node(NULL, NULL, $1);
-      }
-      | CHARACTER { 
-          $$ = create_node(NULL, NULL, ""); 
       }
       | LPAREN expression RPAREN { $$ = $2; }
       | function_call { $$ = $1; }
@@ -244,6 +245,7 @@ primary_expression:
 assignment:
       ID ASSIGN expression {
             declared_rule($1);
+            // check_type($1, $3);
             $$ = create_node(NULL, $3, "=");
             $$->left = create_node(NULL, NULL, $1);
       }
@@ -309,6 +311,21 @@ array_list:
       }
       ;
 
+value:
+    INTVAL {
+        create($1, "INT", yylineno);
+        create_node($1, NULL, "");
+    } 
+    | FLOATVAL {
+        create($1, "FLOAT", yylineno);
+        create_node($1, NULL, "");
+    }
+    | STRINGVAL {
+        create($1, "STRING", yylineno);
+        create_node($1, NULL, "");
+    }
+    ;
+
 array_arguments:
       INT {
         $$ = create_node(NULL, NULL, "");
@@ -344,8 +361,7 @@ declaration:
 type:
       INT     { $$ = strdup("INT"); }
     | FLOAT   { $$ = strdup("FLOAT"); }
-    | CHAR    { $$ = strdup("CHAR"); }
-    | STR     { $$ = strdup("STR"); }
+    | STRING    { $$ = strdup("STRING"); }
     | VOID    { $$ = strdup("VOID"); }
     ;
 
@@ -423,7 +439,7 @@ int main(int argc, char **argv) {
     if (yyparse() == 0) {
         printf("Parsing completed successfully!\n");
         print_table();
-        print_tree(root, 0);
+        // print_tree(root, 0);
     }
     return 0;
 }
@@ -492,6 +508,14 @@ int declared_rule(char *name) {
         }
     }
     printf("Erro: Variável %s não declarada na linha %d\n", name, yylineno);
+    exit(1);
+}
+
+int check_type(char *type1, node *expression) {
+    if (1) {
+        return 1;
+    }
+    printf("Erro: Tipo incompatível na linha %d\n", yylineno);
     exit(1);
 }
 
