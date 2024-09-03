@@ -34,7 +34,6 @@ number {digit}+(\.{digit}+)?
 ","                     { printf("TOKEN: COMMA, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return COMMA; }
 \n                      { printf("TOKEN: NEWLINE, VALUE: \\n\n"); yylineno++; return NEWLINE; }
 \"[^\"]*\"              { printf("TOKEN: STR, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return STR; }
-"\'[^\']\'"             { printf("TOKEN: CHARACTER, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return CHARACTER; }
 [a-zA-Z_][a-zA-Z0-9_]*  { printf("TOKEN: ID, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return ID; }
 "<="                    { printf("TOKEN: LE, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return LE; }
 ">="                    { printf("TOKEN: GE, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return GE; }
@@ -50,7 +49,7 @@ number {digit}+(\.{digit}+)?
 "*"                     { printf("TOKEN: MULTIPLY, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return MULTIPLY; }
 ";"                     { printf("TOKEN: SEMICOLON, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return SEMICOLON; }
 [ \t]+                  { }
-{number}                { printf("TOKEN: %s, VALUE: %s\n", strchr(yytext, '.') ? "FLOAT" : "INT", yytext); yylval.name = strdup(yytext); return (strchr(yytext, '.') ? FLOAT : INT); }
+{number}                { printf("TOKEN: %s, VALUE: %s\n", strchr(yytext, '.') ? "FLOATVAL" : "INTVAL", yytext); yylval.name = strdup(yytext); return (strchr(yytext, '.') ? FLOATVAL : INTVAL); }
 {unary}                 { printf("TOKEN: UNARY, VALUE: %s\n", yytext); yylval.name = strdup(yytext); return UNARY; }
 
 %%

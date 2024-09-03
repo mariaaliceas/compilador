@@ -26,6 +26,7 @@ node* root;
 node* create_node(struct node *left, struct node *right, char *name);
 symbol *create(char *name, char *type, int line);
 
+int check_type(char *name, char *type);
 int declared_rule(char *name);
 void add_child(node *parent, node *child);
 void print_table();
@@ -36,17 +37,19 @@ void print_tree(node *root, int level);
 %union {
     int intval;
     float floatval;
+    char *stringval;
     char *name;
     struct node *node;
 }
 
-%token CHAR VOID TRUE FALSE
+%token CHAR VOID TRUE FALSE INT FLOAT
 %token UNARY LE GE EQ NE GT LT AND OR ADD SUBTRACT DIVIDE MULTIPLY
 %token LPAREN RPAREN COMMA NEWLINE ASSIGN LKEY RKEY RBRACKET LBRACKET SEMICOLON
 
-%token <intval> INT
-%token <floatval> FLOAT
-%token <name> STR CHARACTER ID PRINTFF SCANFF RETURN FOR INCLUDE FUNCTION IF ELSE
+%token <intval> INTVAL
+%token <floatval> FLOATVAL
+%token <stringval> STR
+%token <name> ID PRINTFF SCANFF RETURN FOR INCLUDE FUNCTION IF ELSE
 
 %type <node> if_statement else function_definition key_word program header body function_name parameter_definition statement declaration control_flow function_call expression assignment conditional_expression logical_or_expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression primary_expression array_position array_list array_arguments statement_list parameter_list
 %type <name> type
@@ -227,11 +230,8 @@ primary_expression:
       | FLOAT { 
           $$ = create_node(NULL, NULL, "");
       }
-      | STR { 
+      | STR {
           $$ = create_node(NULL, NULL, $1);
-      }
-      | CHARACTER { 
-          $$ = create_node(NULL, NULL, ""); 
       }
       | LPAREN expression RPAREN { $$ = $2; }
       | function_call { $$ = $1; }
@@ -423,7 +423,7 @@ int main(int argc, char **argv) {
     if (yyparse() == 0) {
         printf("Parsing completed successfully!\n");
         print_table();
-        print_tree(root, 0);
+        // print_tree(root, 0);
     }
     return 0;
 }
@@ -492,6 +492,18 @@ int declared_rule(char *name) {
         }
     }
     printf("Erro: Variável %s não declarada na linha %d\n", name, yylineno);
+    exit(1);
+}
+
+int check_type(char *name, char *type) {
+    for (int i = 0; i < count; i++) {
+        if (strcmp(symbolTable[i]->name, name) == 0) {
+            if (strcmp(symbolTable[i]->type, type) == 0) {
+                return 1;
+            }
+        }
+    }
+    printf("Erro: Variável %s não é do tipo %s na linha %d\n", name, type, yylineno);
     exit(1);
 }
 
