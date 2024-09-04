@@ -2,9 +2,9 @@ incluir_biblioteca teste;
 
 declarar_int global recebe 3;
 
-funcao somar(declarar_int a, declarar_int b) {
-    declarar_int resultado;
-    resultado recebe a + b;
+funcao check_types(declarar_char a, declarar_char b) {
+    declarar_char resultado;
+    resultado recebe a * b;
     retornar resultado;
 }
 
@@ -14,7 +14,6 @@ funcao atribuicao() {
     declarar_char frase recebe "teste";
     x recebe 10;
     y recebe 5;
-    somar(x, y);
 }
 
 funcao decisao(declarar_int age) {
@@ -22,7 +21,7 @@ funcao decisao(declarar_int age) {
     declarar_int idade;
     idade recebe age;
     declarar_float altura;
-    altura recebe "texto";
+    altura recebe 8.0;
 
     se (idade >= 18) {
         mostrar "Você é maior de idade."; 
