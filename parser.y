@@ -8,16 +8,16 @@ extern int yylineno;
 void yyerror(const char *s);
 
 typedef struct node {
-    char *name;
-    struct node *left;
-    struct node *right;
-    char *type;
+  char *name;
+  struct node *left;
+  struct node *right;
+  char *type;
 } node;
 
 typedef struct symbol {
-    char *name;            
-    char *type;
-    int line;
+  char *name;            
+  char *type;
+  int line;
 } symbol;
 
 symbol *symbolTable[30];
@@ -32,8 +32,7 @@ void add_child(node *parent, node *child);
 void print_table();
 void print_tree(node *root, int level);
 char* get_type(node* node);
-void check_assignment_type(char *id, node* left, node* right);
-void check_expression_type(char *id, node* node);
+void check_assignment_type(char *id, node* node);
 char* get_type_symbol(char *name);
 
 %}
@@ -128,7 +127,7 @@ expression:
     | ID array_position {
         declared_rule($1);
         $$ = create_node($2, NULL, "ARRAY ACCESS", "");
-        $$->type = strdup(symbolTable[declared_rule($1)-1]->type); // Define o tipo do acesso ao array
+        $$->type = strdup($$->type);
         $$->left = create_node(NULL, NULL, $1, $$->type);
       }
     | ID ADD expression {
@@ -136,25 +135,28 @@ expression:
         $$ = create_node(NULL, $3, "+", ""); 
         $$->left = create_node(NULL, NULL, $1, "");
         $$->type = get_type_symbol($1);
-        check_expression_type($1, $3);
+        check_assignment_type($1, $3);
       }
     | ID SUBTRACT expression {
         declared_rule($1);
         $$ = create_node(NULL, $3, "-", ""); 
         $$->left = create_node(NULL, NULL, $1, ""); 
-        $$->type = get_type($$);
+        $$->type = get_type_symbol($1);
+        check_assignment_type($1, $3);
       }
     | ID MULTIPLY expression {
         declared_rule($1);
         $$ = create_node(NULL, $3, "*", ""); 
         $$->left = create_node(NULL, NULL, $1, ""); 
-        $$->type = get_type($$);
+        $$->type = get_type_symbol($1);
+        check_assignment_type($1, $3);
       }
     | ID DIVIDE expression {
         declared_rule($1);
         $$ = create_node(NULL, $3, "/", ""); 
         $$->left = create_node(NULL, NULL, $1, ""); 
-        $$->type = get_type($$);
+        $$->type = get_type_symbol($1);
+        check_assignment_type($1, $3);
       }
     ;
 
@@ -210,11 +212,11 @@ additive_expression:
       multiplicative_expression { $$ = $1; }
       | additive_expression ADD multiplicative_expression {
           $$ = create_node($1, $3, "+", $1->type);
-          $$->type = get_type($$); // Define o tipo da expressão
+          $$->type = get_type($$);
       }
       | additive_expression SUBTRACT multiplicative_expression {
           $$ = create_node($1, $3, "-", $1->type);
-          $$->type = get_type($$); // Define o tipo da expressão
+          $$->type = get_type($$); 
       }
       ;
 
@@ -222,11 +224,11 @@ multiplicative_expression:
       unary_expression { $$ = $1; }
       | multiplicative_expression MULTIPLY unary_expression {
           $$ = create_node($1, $3, "*", $1->type);
-          $$->type = get_type($$); // Define o tipo da expressão
+          $$->type = get_type($$);
       }
       | multiplicative_expression DIVIDE unary_expression {
           $$ = create_node($1, $3, "/", $1->type);
-          $$->type = get_type($$); // Define o tipo da expressão
+          $$->type = get_type($$);
       }
       ;
 
@@ -236,7 +238,7 @@ unary_expression:
        }
       | SUBTRACT unary_expression %prec UNARY {
         $$ = create_node(NULL, $2, "-", "");
-        $$->type = get_type($$); // Define o tipo da expressão
+        $$->type = get_type($$);
       }
       ;
 
@@ -264,8 +266,7 @@ assignment:
         declared_rule($1);
         $$ = create_node(NULL, $3, "=", $3->type);
         $$->left = create_node(NULL, NULL, $1, $3->type);
-        check_expression_type($1, $3);
-        check_assignment_type($1, $$, $3);
+        check_assignment_type($1, $3);
       }
       | ID ASSIGN array_list {
         declared_rule($1);
@@ -334,13 +335,7 @@ array_arguments:
         $$ = create_node(NULL, NULL, "", "INT");
       }
       | array_arguments COMMA INTVAL {
-        node* newNode = create_node(NULL, NULL, "", "INT");
-          node *temp = $1;
-          while (temp->right != NULL) {
-              temp = temp->right;
-          }
-          temp->right = newNode;
-          $$ = $1; 
+        
       }
       ;
 
@@ -353,7 +348,7 @@ declaration:
           create($2, $1, yylineno);
           $$ = create_node($4, NULL, "=", $1); 
           $$->left = create_node(NULL, NULL, $2, $1); 
-          check_assignment_type($2, $$, $4);
+          check_assignment_type($2, $4);
       }
     | type ID array_position SEMICOLON {
           create($2, $1, yylineno);
@@ -441,9 +436,9 @@ void yyerror(const char *s) {
 
 int main(int argc, char **argv) { 
     if (yyparse() == 0) {
-        printf("Parsing completed successfully!\n");
-        print_table();
-       // print_tree(root, 0);
+      printf("Parsing completed successfully!\n");
+      print_table();
+      // print_tree(root, 0);
     }
     return 0;
 }
@@ -552,7 +547,7 @@ char* get_type_symbol(char *name) {
             return symbolTable[i]->type;
         }
     }
-    return "UNKNOWN";
+    return NULL;
 }
 
 char* get_type(node* node) {
@@ -563,53 +558,28 @@ char* get_type(node* node) {
     return "INT";
   }
 
-  return "UNKNOWN";
+  return NULL;
 }
 
-void check_expression_type(char *id, node* node) {
+void check_assignment_type(char *id, node* node) {
+  char *idType;
   char *nodeType = node->type;
-  char *typeid;
 
   for (int i = 0; i < count; i++) {
     if (strcmp(symbolTable[i]->name, id) == 0) {
-      typeid = symbolTable[i]->type;
-      break;
-    }
-  }
-  printf("ID: %s\n", id);
-  printf("TYPE: %s\n", typeid);
-  printf("NODE TYPE: %s\n", nodeType);
-  printf("NODE CHAR: %s\n", node->name);
-  
-  if (strcmp(nodeType, "UNKNOWN") == 0) {
-    return;
-  } else {
-    if (strcmp(nodeType, "INT") != 0 && strcmp(nodeType, "FLOAT") != 0) {
-      printf("Erro de tipo: tentativa de somar '%s' com '%s' na linha %d\n",
-             nodeType, typeid, yylineno);
-      exit(1);
-    }
-  }
-}
-
-void check_assignment_type(char *id, node* left, node* right) {
-  char *leftType = left->type;
-  char *rightType = right->type;
-
-  for (int i = 0; i < count; i++) {
-    if (strcmp(symbolTable[i]->name, id) == 0) {
-      leftType = symbolTable[i]->type;
+      idType = symbolTable[i]->type;
       break;
     }
   }
 
-  if (strcmp(leftType, "UNKNOWN") == 0 || strcmp(rightType, "UNKNOWN") == 0) {
-    return;
-  } else {
-    if (strcmp(leftType, rightType) != 0) {
-      printf("Erro de tipo: tentativa de atribuir '%s' a '%s' na linha %d\n",
-             rightType, leftType, yylineno);
-      exit(1);
-    }
+  if (strcmp(idType, "CHAR") == 0 && strcmp(nodeType, "CHAR") == 0) {
+    printf("Erro de tipo: operação não permitida entre %s e %s na linha %d\n", idType, nodeType, yylineno);
+    exit(1);
   }
+
+  if (strcmp(idType, nodeType) != 0) {
+    printf("Erro de tipo: operação não permitida entre %s e %s na linha %d\n", idType, nodeType, yylineno);
+    exit(1);
+  }
+
 }
