@@ -572,11 +572,6 @@ void check_assignment_type(char *id, node* node) {
     }
   }
 
-  if (strcmp(idType, "CHAR") == 0 && strcmp(nodeType, "CHAR") == 0) {
-    printf("Erro de tipo: operação não permitida entre %s e %s na linha %d\n", idType, nodeType, yylineno);
-    exit(1);
-  }
-
   if (strcmp(idType, nodeType) != 0) {
     printf("Erro de tipo: operação não permitida entre %s e %s na linha %d\n", idType, nodeType, yylineno);
     exit(1);
